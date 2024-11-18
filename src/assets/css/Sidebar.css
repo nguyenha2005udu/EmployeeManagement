@@ -1,0 +1,26 @@
+.ant-menu {
+  height: 100%;
+  border-right: none !important;
+}
+
+.user-profile {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+  color: white;
+}
+
+/* Menu items */
+.ant-menu-item,
+.ant-menu-submenu-title {
+  margin: 0 !important;
+}
+
+.ant-menu-dark {
+  background: transparent;
+}

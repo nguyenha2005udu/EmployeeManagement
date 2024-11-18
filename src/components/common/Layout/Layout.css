@@ -1,0 +1,85 @@
+/* Reset CSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base container */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 256px;
+  background: #001529;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 999;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Main wrapper */
+.main-wrapper {
+  flex: 1;
+  padding-left: 256px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: padding-left 0.3s ease;
+  width: 100%;
+}
+
+.sidebar.collapsed ~ .main-wrapper {
+  padding-left: 80px;
+}
+
+/* Header */
+.header {
+  height: 64px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.visible {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    padding-left: 0;
+  }
+
+  .sidebar.collapsed ~ .main-wrapper {
+    padding-left: 0;
+  }
+}
