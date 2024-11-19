@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Table,
   Button,
@@ -8,6 +9,7 @@ import {
   Input,
   Select,
   Tag,
+  Form,
   Tooltip,
   Dropdown,
   Menu,
@@ -51,9 +53,11 @@ const EmployeeList = () => {
     position: "all",
     status: "all",
   });
+  const [form] = Form.useForm();
   const [selectedRows, setSelectedRows] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const fetchEmployees = async () => {
     try {
@@ -64,16 +68,15 @@ const EmployeeList = () => {
       // Chuyển đổi dữ liệu API sang định dạng cần thiết
       const transformedData = apiData.map((item) => ({
         id: item.id,
-        code: item.employeeId || "",
-        fullName: item.name || "",
-        email: "", // Giả định email không có trong dữ liệu gốc
+        employeeId: item.employeeId || "",
+        name: item.name || "",
         department: {
-          id: item.department?.id || "",
-          name: item.department?.departmentName || "",
+          departmentId: item.department?.id || "",
+          departmentName: item.department?.departmentName || "",
         },
         position: {
-          id: item.position?.id || "",
-          name: item.position?.positionName || "",
+          positionId: item.position?.id || "",
+          positionName: item.position?.positionName || "",
         },
         status: item.department?.status || "Inactive", // Giả định trạng thái dựa trên department
       }));
@@ -101,26 +104,61 @@ const EmployeeList = () => {
     setCurrentEmployee(employee);
     setDrawerVisible(true);
   };
+   const handleAdd = () => {
+
+        form.resetFields();
+
+        setModalVisible(true);
+      };
+
+  const handleSubmit = (values) => {
+          const newEmployee = {
+            id: employees.length + 1,
+            name: values.name,
+            department: {
+               id:values.departmentId
+            },
+            position: {
+               id: values.positionId
+            },
+            basicSalary: values.basicSalary
+          };
+        const response = axios.post(
+          "http://localhost:8080/user-management/employees/add-employee",
+          newEmployee
+        );
+        console.log(newEmployee)
+        setEmployees([...employees, newEmployee]);
+        message.success("Đã thêm chức vụ mới!");
+        setModalVisible(false);
+
+      }
 
   const handleDelete = (id) => {
-    confirm({
-      title: "Bạn có chắc chắn muốn xóa nhân viên này?",
-      icon: <ExclamationCircleOutlined />,
-      content: "Hành động này không thể hoàn tác",
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          await employeeService.deleteEmployee(id);
-          message.success("Xóa nhân viên thành công");
-          fetchEmployees();
-        } catch (error) {
-          message.error("Có lỗi xảy ra khi xóa nhân viên");
-        }
-      },
-    });
-  };
+      Modal.confirm({
+        title: "Bạn có chắc chắn muốn xóa Nhân viên này?",
+        content: "Hành động này không thể hoàn tác",
+        okText: "Xóa",
+        okType: "danger",
+        cancelText: "Hủy",
+        onOk: async () => {
+          try {
+            // Send DELETE request to the backend API
+            await axios.delete(`http://localhost:8080/user-management/employees/${id}`);
+
+            // Update the positions state by filtering out the deleted position
+            setEmployees(employees.filter(item => item.employeeId !== id));
+
+            // Show success message
+            message.success("Đã xóa nhân viên");
+          } catch (error) {
+            // Handle error (optional)
+            message.error("Không thể xóa nhân viên");
+            console.error("Error deleting employee:", error);
+          }
+        },
+      });
+    };
 
   const handleBulkAction = (action) => {
     confirm({
@@ -176,8 +214,11 @@ const EmployeeList = () => {
     },
   };
 
-  const showEmployeeDetail = (employee) => {
-    setCurrentEmployee(employee);
+  const showEmployeeDetail = (employeeId) => {
+    const response = axios.get(
+            `http://localhost:8080/user-management/employees/${employeeId}`
+          );
+          console.log(response)
     setDrawerVisible(true);
   };
 
@@ -211,9 +252,9 @@ const EmployeeList = () => {
     {
       title: "Mã NV",
 
-      dataIndex: "code",
+      dataIndex: "employeeId",
 
-      key: "code",
+      key: "employeeId",
 
       width: 100,
     },
@@ -230,7 +271,7 @@ const EmployeeList = () => {
           </div>
 
           <div>
-            <div className="font-medium">{record.fullName}</div>
+            <div className="font-medium">{record.name}</div>
 
             <div className="text-gray-500 text-sm">{record.email}</div>
           </div>
@@ -241,7 +282,7 @@ const EmployeeList = () => {
     {
       title: "Phòng Ban",
 
-      dataIndex: ["department", "name"],
+      dataIndex: ["department", "departmentName"],
 
       key: "department",
 
@@ -251,7 +292,7 @@ const EmployeeList = () => {
     {
       title: "Chức Vụ",
 
-      dataIndex: ["position", "name"],
+      dataIndex: ["position", "positionName"],
 
       key: "position",
 
@@ -298,14 +339,14 @@ const EmployeeList = () => {
       <Menu.Item
         key="edit"
         icon={<EditOutlined />}
-        onClick={() => handleEdit(record)}
+        onClick={() => handleEdit(record.employeeId)}
       >
         Sửa thông tin
       </Menu.Item>
       <Menu.Item
         key="view"
         icon={<EditOutlined />}
-        onClick={() => showEmployeeDetail(record)}
+        onClick={() => showEmployeeDetail(record.employeeId)}
       >
         Xem chi tiết
       </Menu.Item>
@@ -314,7 +355,7 @@ const EmployeeList = () => {
         key="delete"
         icon={<DeleteOutlined />}
         danger
-        onClick={() => handleDelete(record.id)}
+        onClick={() => handleDelete(record.employeeId)}
       >
         Xóa nhân viên
       </Menu.Item>
@@ -323,8 +364,8 @@ const EmployeeList = () => {
 
   const filteredEmployees = employees.filter((emp) => {
     const matchSearch =
-      (emp.fullName?.toLowerCase().includes(searchText.toLowerCase()) || false) ||
-      (emp.code?.toLowerCase().includes(searchText.toLowerCase()) || false);
+      (emp.name?.toLowerCase().includes(searchText.toLowerCase()) || false) ||
+      (emp.employeeId?.toLowerCase().includes(searchText.toLowerCase()) || false);
     const matchDepartment =
       filters.department === "all" || emp.department?.id === filters.department;
     const matchPosition =
@@ -348,7 +389,7 @@ const EmployeeList = () => {
             </p>
           </div>
 
-          <Button type="primary" icon={<PlusOutlined />} size="large">
+          <Button type="primary"  onClick={handleAdd} icon={<PlusOutlined />} size="large">
             Thêm Nhân Viên
           </Button>
         </div>
@@ -388,6 +429,55 @@ const EmployeeList = () => {
           loading={loading}
           rowKey="id"
         />
+        <Modal
+          title= "Thêm Nhân Viên Mới"
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+      >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+              <Form.Item
+                  name="name"
+                  label="Họ và tên"
+                  rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
+              >
+                  <Input />
+              </Form.Item>
+
+              <Form.Item
+                  name="departmentId"
+                  label="Mã phòng ban"
+                  rules={[{ required: true, message: "Vui lòng nhập Mã phòng ban" }]}
+              >
+                  <Input />
+              </Form.Item>
+              <Form.Item
+                name="positionId"
+                label="Mã Vị Trí công việc"
+                rules={[{ required: true, message: "Vui lòng nhậpVị Trí công việc" }]}
+            >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                  name="basicSalary"
+                  label="Lương cơ bản"
+                  rules={[{ required: true, message: "Vui lòng nhập số lương cơ bản của bạn" }]}
+              >
+                  <Input />
+              </Form.Item>
+
+
+              <Form.Item className="text-right">
+                  <Space>
+                      <Button onClick={() => setModalVisible(false)}>Hủy</Button>
+
+                      <Button type="primary" htmlType="submit">
+                          Thêm mới
+                      </Button>
+                  </Space>
+              </Form.Item>
+          </Form>
+        </Modal>
 
         <Drawer
           width={640}

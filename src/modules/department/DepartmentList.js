@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Table,
   Button,
   Space,
   message,
   Card,
+  Modal,
   Input,
   Tag,
+  Form,
   Tooltip,
   Dropdown,
   Menu,
@@ -30,11 +33,23 @@ import {
 import { departmentService } from "../../services/departmentService";
 
 const { Search } = Input;
-
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Active":
+      return "success";
+    case "Inactive":
+      return "error";
+    default:
+      return "default";
+  }
+};
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchDepartments();
@@ -45,13 +60,11 @@ const DepartmentList = () => {
           setLoading(true);
           const apiData = await departmentService.getAllDepartments();
           console.log("Dữ liệu trả về từ API:", apiData);
-
           const transformedData = apiData.map((item) => ({
             id: item.id,
-            code: item.departmentCode || "",
-            joinDate: item.foundingYear,
-            fullName: item.departmentName || "",
-
+            departmentCode: item.departmentCode || "",
+            foundingYear: item.foundingYear,
+            departmentName: item.departmentName || "",
             status: item.status
           }));
 
@@ -66,20 +79,60 @@ const DepartmentList = () => {
 
   const filteredDepartments = departments.filter(
     (dept) =>
-      dept.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      dept.departmentName?.toLowerCase().includes(searchText.toLowerCase()) ||
       dept.code?.toLowerCase().includes(searchText.toLowerCase())
   );
+    const handleAdd = () => {
 
-  const actionMenu = () => (
-    <Menu>
-      <Menu.Item key="edit" icon={<EditOutlined />}>
-        Sửa thông tin
-      </Menu.Item>
-      <Menu.Item key="delete" icon={<DeleteOutlined />} danger>
-        Xóa phòng ban
-      </Menu.Item>
-    </Menu>
-  );
+        form.resetFields();
+
+        setModalVisible(true);
+      };
+
+
+  const handleSubmit = (values) => {
+        const newDepartment = {
+          id: departments.length + 1,
+          ...values,
+        };
+
+
+      const response = axios.post(
+        "http://localhost:8080/user-management/departments/add",
+        newDepartment
+      );
+      console.log(newDepartment)
+      setDepartments([...departments, newDepartment]);
+      message.success("Đã thêm chức vụ mới!");
+      setModalVisible(false);
+
+    }
+const handleDelete = (id) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa Phòng ban này?",
+      content: "Hành động này không thể hoàn tác",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          // Send DELETE request to the backend API
+          await axios.delete(`http://localhost:8080/user-management/departments/${id}`);
+
+          // Update the positions state by filtering out the deleted position
+          setDepartments(departments.filter(item => item.departmentCode !== id));
+
+          // Show success message
+          message.success("Đã xóa phòng ban");
+        } catch (error) {
+          // Handle error (optional)
+          message.error("Không thể xóa Phòng ban");
+          console.error("Error deleting department:", error);
+        }
+      },
+    });
+  };
+
 
   const columns = [
     {
@@ -91,8 +144,8 @@ const DepartmentList = () => {
             <BankOutlined className="text-blue-500" />
           </div>
           <div>
-            <div className="font-medium">{record.name}</div>
-            <div className="text-gray-500 text-sm">Mã: {record.code}</div>
+            <div className="font-medium">{record.departmentName}</div>
+            <div className="text-gray-500 text-sm">Mã: {record.departmentCode}</div>
           </div>
         </Space>
       ),
@@ -120,32 +173,36 @@ const DepartmentList = () => {
     },
     {
       title: "Năm thành lập",
-      dataIndex: "establishedYear",
-      key: "establishedYear",
+      dataIndex: "foundingYear",
+      key: "foundingYear",
       render: (year) => <Tag icon={<CalendarOutlined />}>{year}</Tag>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status ? "success" : "error"}>
-          {status ? "Đang hoạt động" : "Ngừng hoạt động"}
-        </Tag>
-      ),
+        render: (status) => (
+           <Tag color={getStatusColor(status)}>
+               {status === "Active" ? "Đang hoạt động" : "Không hoạt động"}
+           </Tag>
+        ),
     },
     {
       title: "Thao tác",
-      key: "actions",
-      width: 100,
+
+      key: "action",
+
       render: (_, record) => (
         <Space>
-          <Tooltip title="Xem chi tiết">
-            <Button type="text" icon={<EditOutlined />} />
+
+          <Tooltip title="Xóa">
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.departmentCode)}
+            />
           </Tooltip>
-          <Dropdown overlay={actionMenu(record)} trigger={["click"]}>
-            <Button type="text" icon={<MoreOutlined />} />
-          </Dropdown>
         </Space>
       ),
     },
@@ -162,8 +219,8 @@ const DepartmentList = () => {
               Quản lý thông tin các phòng ban trong công ty
             </p>
           </div>
-          <Button type="primary" icon={<PlusOutlined />} size="large">
-            Thêm Phòng Ban
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                Thêm Phòng Ban
           </Button>
         </div>
 
@@ -225,6 +282,55 @@ const DepartmentList = () => {
             showQuickJumper: true,
           }}
         />
+        <Modal
+          title= "Thêm Phòng Ban Mới"
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+      >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+              <Form.Item
+                  name="departmentCode"
+                  label="Mã phòng ban"
+                  rules={[{ required: true, message: "Vui lòng nhập mã phòng ban gồm 3 kí tự" }]}
+              >
+                  <Input />
+              </Form.Item>
+
+              <Form.Item
+                  name="departmentName"
+                  label="Tên phòng ban"
+                  rules={[{ required: true, message: "Vui lòng nhập tên phòng ban" }]}
+              >
+                  <Input />
+              </Form.Item>
+              <Form.Item
+                name="foundingYear"
+                label="Năm thành lập"
+                rules={[{ required: true, message: "Vui lòng nhập năm thành lập phòng ban" }]}
+            >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                  name="status"
+                  label="Trạng thái"
+                  rules={[{ required: true, message: "Vui lòng trạng thái của phòng ban (Active/Inactive)" }]}
+              >
+                  <Input />
+              </Form.Item>
+
+
+              <Form.Item className="text-right">
+                  <Space>
+                      <Button onClick={() => setModalVisible(false)}>Hủy</Button>
+
+                      <Button type="primary" htmlType="submit">
+                          Thêm mới
+                      </Button>
+                  </Space>
+              </Form.Item>
+          </Form>
+      </Modal>
       </Card>
     </div>
   );
