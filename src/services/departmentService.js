@@ -1,12 +1,13 @@
-import { departmentsData } from "../utils/mockData";
+//import { departmentsData } from "../utils/mockData";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/user-management/departments/get-all";
+
 
 export const departmentService = {
   getAllDepartments: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(departmentsData);
-      }, 1000);
-    });
+    const response = await axios.get(API_URL);
+        return response.data;
   },
 
   // ... các phương thức khác

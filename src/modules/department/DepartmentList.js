@@ -41,21 +41,33 @@ const DepartmentList = () => {
   }, []);
 
   const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      const data = await departmentService.getAllDepartments();
-      setDepartments(data);
-    } catch (error) {
-      message.error("Không thể tải danh sách phòng ban");
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+          setLoading(true);
+          const apiData = await departmentService.getAllDepartments();
+          console.log("Dữ liệu trả về từ API:", apiData);
+
+          const transformedData = apiData.map((item) => ({
+            id: item.id,
+            code: item.departmentCode || "",
+            joinDate: item.foundingYear,
+            fullName: item.departmentName || "",
+
+            status: item.status
+          }));
+
+          setDepartments(transformedData);
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+          message.error("Không thể tải danh sách nhân viên");
+        } finally {
+          setLoading(false);
+        }
+      };
 
   const filteredDepartments = departments.filter(
     (dept) =>
-      dept.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      dept.code.toLowerCase().includes(searchText.toLowerCase())
+      dept.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      dept.code?.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const actionMenu = () => (
@@ -138,6 +150,7 @@ const DepartmentList = () => {
       ),
     },
   ];
+
 
   return (
     <div className="p-6">

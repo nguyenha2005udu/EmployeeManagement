@@ -27,8 +27,7 @@ import {
   BankOutlined,
 } from "@ant-design/icons";
 
-import { positionService } from "../../services/positionService";
-
+import { positionService } from "../../services/positionService.js";
 const { Option } = Select;
 
 const PositionList = () => {
@@ -45,17 +44,26 @@ const PositionList = () => {
   useEffect(() => {
     const fetchPositions = async () => {
       try {
-        setLoading(true);
+            setLoading(true);
+            const apiData = await positionService.getAllPositions();
+            console.log("Dữ liệu trả về từ API:", apiData);
 
-        const data = await positionService.getAllPositions();
+            // Chuyển đổi dữ liệu API sang định dạng cần thiết
+            const transformedData = apiData.map((item) => ({
+              id: item.id,
+              code: item.positionCode || "",
+              name: item.positionName || ""
+              }))
 
-        setPositions(data);
-      } catch (error) {
-        message.error("Không thể tải danh sách chức vụ");
-      } finally {
-        setLoading(false);
-      }
-    };
+            setPositions(transformedData);
+          } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+            message.error("Không thể tải danh sách nhân viên");
+          } finally {
+            setLoading(false);
+          }
+        };
+
 
     fetchPositions();
   }, []);
@@ -172,11 +180,12 @@ const PositionList = () => {
 
       key: "baseSalary",
 
-      render: (value) => (
-        <span className="text-green-600 font-medium">
-          {value.toLocaleString()} VNĐ
-        </span>
-      ),
+     render: (value) => (
+       <span className="text-green-600 font-medium">
+        {typeof value === "number" ? value.toLocaleString("vi-VN") + " VNĐ" : "N/A"}
+       </span>
+     )
+
     },
 
     {
@@ -186,7 +195,12 @@ const PositionList = () => {
 
       key: "allowance",
 
-      render: (value) => value.toLocaleString() + " VNĐ",
+      render: (value) => (
+        <span className="text-green-600 font-medium">
+          {typeof value === "number" ? value.toLocaleString("vi-VN") + " VNĐ" : "N/A"}
+        </span>
+      )
+
     },
 
     {
@@ -355,6 +369,7 @@ const PositionList = () => {
                 { required: true, message: "Vui lòng nhập lương cơ bản" },
               ]}
             >
+
               <InputNumber
                 style={{ width: "100%" }}
                 formatter={(value) =>
@@ -365,24 +380,7 @@ const PositionList = () => {
               />
             </Form.Item>
 
-            <Form.Item
-              name="allowance"
-              label="Phụ cấp"
-              rules={[{ required: true, message: "Vui lòng nhập phụ cấp" }]}
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                addonAfter="VNĐ"
-              />
-            </Form.Item>
 
-            <Form.Item name="description" label="Mô tả">
-              <Input.TextArea rows={4} />
-            </Form.Item>
 
             <Form.Item className="text-right">
               <Space>
