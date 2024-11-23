@@ -83,7 +83,7 @@ const App = () => {
 
           {/* Chấm công & nghỉ phép */}
           <Route
-            path="/timesheet"
+            path="/timekeeping"
             element={
               <TimesheetList
                 service={timesheetService}

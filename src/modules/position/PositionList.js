@@ -56,7 +56,10 @@ const PositionList = () => {
               id: item.id,
               positionCode: item.position.positionCode,
               positionName: item.position.positionName,
-              department: item.department?.departmentName || "",
+              department: {
+                 departmentId: item.department?.id || "",
+                 departmentName: item.department?.departmentName || "",
+              },
               basicSalary: item?.basicSalary || 0,
               status: item.department?.status || false,
           }));
@@ -74,12 +77,17 @@ const PositionList = () => {
               id: item.id,
               positionCode: item.positionCode,
               positionName: item.positionName,
+             department: {
+                       departmentId: item.department?.id || "",
+                       departmentName: item.department?.departmentName || "",
+                     },
+              status: item.department.status
           }));
 
           // Cập nhật danh sách các chức vụ còn lại
           setPositions((prevPositions) => [
-              ...prevPositions, // giữ lại dữ liệu nhân viên
-              ...formattedPositions, // thêm các chức vụ còn lại
+              ...prevPositions,
+              ...formattedPositions,
           ]);
 
       } catch (error) {
@@ -132,7 +140,12 @@ const PositionList = () => {
       // Nếu thêm mới
       const newPosition = {
         id: positions.length + 1,
-        ...values,
+        positionCode: values.positionCode,
+        positionName: values.positionName,
+        department: {
+           id:values.departmentId
+        },
+
          basicSalary: 0,
       };
 
@@ -169,14 +182,11 @@ const PositionList = () => {
 
     {
       title: "Phòng ban",
-
       dataIndex: "department",
-
       key: "department",
-
-      render: (text) => (
+      render: (department) => (
         <Tag color="blue" icon={<BankOutlined />}>
-          {text}
+          {department.departmentName}
         </Tag>
       ),
     },
@@ -190,7 +200,7 @@ const PositionList = () => {
 
       render: (value) => (
          <span className="text-green-600 font-medium">
-           { !isNaN(value) ? value.toLocaleString("vi-VN") + " VNĐ" : "N/A"}
+           { !isNaN(value) ? value.toLocaleString("vi-VN") + " VNĐ" : "0VNĐ"}
          </span>
        )
 
@@ -276,9 +286,22 @@ const PositionList = () => {
                               />
                           </Card>
                       </Col>
-
-
+                      <Col span={8}>
+                          <Card bordered={false}>
+                              <Statistic
+                                  title="Mức lương trung bình"
+                                  value={
+                                      positions.length > 0
+                                          ? (positions.reduce((acc, curr) => acc + (curr.basicSalary || 0), 0) / positions.length).toLocaleString("vi-VN")
+                                          : 0
+                                  }
+                                  prefix={<DollarOutlined />}
+                                  suffix="VNĐ"
+                              />
+                          </Card>
+                      </Col>
                   </Row>
+
 
                   <Table
                       columns={columns}
@@ -309,7 +332,13 @@ const PositionList = () => {
                           >
                               <Input />
                           </Form.Item>
-
+                          <Form.Item
+                              name="departmentId"
+                              label="Mã phòng ban"
+                              rules={[{ required: true, message: "Vui lòng nhập Mã phòng ban" }]}
+                          >
+                              <Input />
+                          </Form.Item>
 
 
                           <Form.Item className="text-right">

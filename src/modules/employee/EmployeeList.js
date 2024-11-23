@@ -26,6 +26,7 @@ import {
   FilterOutlined,
   DownloadOutlined,
   UploadOutlined,
+  TeamOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { employeeService } from "../../services/employeeService";
@@ -64,7 +65,7 @@ const EmployeeList = () => {
       setLoading(true);
       const apiData = await employeeService.getAllEmployees();
       console.log("Dữ liệu trả về từ API:", apiData);
-
+      console.log(Array.isArray(apiData));
       // Chuyển đổi dữ liệu API sang định dạng cần thiết
       const transformedData = apiData.map((item) => ({
         id: item.id,
@@ -78,7 +79,8 @@ const EmployeeList = () => {
           positionId: item.position?.id || "",
           positionName: item.position?.positionName || "",
         },
-        status: item.department?.status || "Inactive", // Giả định trạng thái dựa trên department
+        status: item.department?.status || "Inactive",
+
       }));
 
       setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
@@ -116,7 +118,7 @@ const EmployeeList = () => {
             id: employees.length + 1,
             name: values.name,
             department: {
-               id:values.departmentId
+               id:values.departmentId,
             },
             position: {
                id: values.positionId
@@ -127,7 +129,6 @@ const EmployeeList = () => {
           "http://localhost:8080/user-management/employees/add-employee",
           newEmployee
         );
-        console.log(newEmployee)
         setEmployees([...employees, newEmployee]);
         message.success("Đã thêm chức vụ mới!");
         setModalVisible(false);
@@ -181,7 +182,7 @@ const EmployeeList = () => {
     try {
       await Promise.all(ids.map((id) => employeeService.deleteEmployee(id)));
       message.success(`Đã xóa ${ids.length} nhân viên`);
-      fetchEmployees();
+      setEmployees((prev) => prev.filter((emp) => !ids.includes(emp.employeeId))); // Update local state
     } catch (error) {
       message.error("Có lỗi xảy ra khi xóa nhân viên");
     }
@@ -214,13 +215,17 @@ const EmployeeList = () => {
     },
   };
 
-  const showEmployeeDetail = (employeeId) => {
-    const response = axios.get(
-            `http://localhost:8080/user-management/employees/${employeeId}`
-          );
-          console.log(response)
-    setDrawerVisible(true);
+  const showEmployeeDetail = async (employeeId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/user-management/employees/${employeeId}`);
+      console.log(response.data);
+      setDrawerVisible(true);
+      setCurrentEmployee(response.data); // Set the employee data in the drawer for display
+    } catch (error) {
+      message.error("Không thể tải thông tin chi tiết nhân viên");
+    }
   };
+
 
   const filterMenu = (
     <Menu>
@@ -322,10 +327,6 @@ const EmployeeList = () => {
 
       render: (_, record) => (
         <Space>
-          <Tooltip title="Xem chi tiết">
-            <Button type="text" icon={<EditOutlined />} />
-          </Tooltip>
-
           <Dropdown overlay={actionMenu(record)} trigger={["click"]}>
             <Button type="text" icon={<MoreOutlined />} />
           </Dropdown>
@@ -345,7 +346,7 @@ const EmployeeList = () => {
       </Menu.Item>
       <Menu.Item
         key="view"
-        icon={<EditOutlined />}
+        icon={<TeamOutlined />}
         onClick={() => showEmployeeDetail(record.employeeId)}
       >
         Xem chi tiết

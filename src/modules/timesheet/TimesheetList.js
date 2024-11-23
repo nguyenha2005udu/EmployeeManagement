@@ -29,18 +29,18 @@ import {
   TableOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
+
 import { timesheetService } from "../../services/timesheetService";
 import LeaveRequestList from "./LeaveRequestList";
 import ScheduleList from "./ScheduleList";
-import { dateUtils } from "../../utils/dateUtils";
 
 const { TabPane } = Tabs;
 
 const TimesheetList = () => {
   const [timesheets, setTimesheets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(dateUtils.getCurrentDate());
-  const [viewMode, setViewMode] = useState("list"); // list/calendar
+  const [selectedDate, setSelectedDate] = useState(moment()); // Thay thế dateUtils.getCurrentDate()
+  const [viewMode, setViewMode] = useState("list");
   const [statistics, setStatistics] = useState({
     present: 0,
     late: 0,
@@ -81,7 +81,8 @@ const TimesheetList = () => {
 
   const handleCheckIn = async (employeeId) => {
     try {
-      await timesheetService.checkIn(employeeId);
+      const currentTime = moment().toISOString(); // Lấy thời gian hiện tại
+      await timesheetService.checkIn(employeeId, currentTime); // Gửi thời gian lên server
       message.success("Đã check-in thành công");
       fetchTimesheets();
     } catch (error) {
@@ -91,43 +92,13 @@ const TimesheetList = () => {
 
   const handleCheckOut = async (timesheetId) => {
     try {
-      await timesheetService.checkOut(timesheetId);
+      const currentTime = moment().toISOString();
+      await timesheetService.checkOut(timesheetId, currentTime);
       message.success("Đã check-out thành công");
       fetchTimesheets();
     } catch (error) {
       message.error("Không thể check-out");
     }
-  };
-
-  const getStatusTag = (status) => {
-    const statusConfig = {
-      present: {
-        color: "success",
-        icon: <CheckCircleOutlined />,
-        text: "Có mặt",
-      },
-      late: {
-        color: "warning",
-        icon: <ClockCircleOutlined />,
-        text: "Đi muộn",
-      },
-      absent: {
-        color: "error",
-        icon: <CloseCircleOutlined />,
-        text: "Vắng mặt",
-      },
-      leave: {
-        color: "processing",
-        icon: <CalendarOutlined />,
-        text: "Nghỉ phép",
-      },
-    };
-    const config = statusConfig[status];
-    return (
-      <Tag color={config.color} icon={config.icon}>
-        {config.text}
-      </Tag>
-    );
   };
 
   const columns = [
@@ -167,12 +138,7 @@ const TimesheetList = () => {
         return `${duration.hours()}h ${duration.minutes()}m`;
       },
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => getStatusTag(status),
-    },
+
     {
       title: "Thao tác",
       key: "actions",
@@ -291,10 +257,8 @@ const TimesheetList = () => {
             <div className="mb-6">
               <Space>
                 <DatePicker
-                  value={dateUtils.fromAPIDate(selectedDate)}
-                  onChange={(date) => {
-                    setSelectedDate(dateUtils.toAPIDate(date));
-                  }}
+                  value={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
                   format="DD/MM/YYYY"
                 />
               </Space>
@@ -310,29 +274,9 @@ const TimesheetList = () => {
               />
             ) : (
               <Calendar
-                value={dateUtils.fromAPIDate(selectedDate)}
-                onChange={(date) => {
-                  setSelectedDate(dateUtils.toAPIDate(date));
-                }}
-                dateCellRender={(date) => {
-                  if (!dateUtils.isValidDate(date)) return null;
-                  const dayData = timesheets.filter(
-                    (t) =>
-                      dateUtils.toAPIDate(t.date) === dateUtils.toAPIDate(date)
-                  );
-                  return (
-                    <ul className="events">
-                      {dayData.map((item, index) => (
-                        <li key={index}>
-                          <Badge
-                            status={item.status}
-                            text={item.employee?.fullName}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  );
-                }}
+                value={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                dateCellRender={calendarCellRender}
               />
             )}
           </TabPane>

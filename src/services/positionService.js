@@ -17,10 +17,10 @@ export const positionService = {
 //    });
 //  },
 //
-  createPosition: async (data) => {
-   const response = await axios.post("http://localhost:8080/user-management/positions/add", data);
-           return response.data;
-  },
+//  createPosition: async (data) => {
+//   const response = await axios.post("http://localhost:8080/user-management/positions/add", data);
+//           return response.data;
+//  },
 //
 //  updatePosition: async (id, data) => {
 //    return new Promise((resolve) => {
