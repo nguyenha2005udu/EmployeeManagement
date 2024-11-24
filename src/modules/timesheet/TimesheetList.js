@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Table,
   DatePicker,
@@ -33,73 +34,83 @@ import moment from "moment";
 import { timesheetService } from "../../services/timesheetService";
 import LeaveRequestList from "./LeaveRequestList";
 import ScheduleList from "./ScheduleList";
-
 const { TabPane } = Tabs;
 
 const TimesheetList = () => {
-  const [timesheets, setTimesheets] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(moment()); // Thay thế dateUtils.getCurrentDate()
-  const [viewMode, setViewMode] = useState("list");
-  const [statistics, setStatistics] = useState({
-    present: 0,
-    late: 0,
-    absent: 0,
-    onLeave: 0,
-  });
+    const [timesheets, setTimesheets] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(moment());
+    const [viewMode, setViewMode] = useState("list");
+    const [statistics, setStatistics] = useState({
+        present: 0,
+        late: 0,
+        absent: 0,
+        onLeave: 0,
+    });
 
-  useEffect(() => {
-    fetchTimesheets();
-  }, [selectedDate]);
+    const fetchTimesheets = async () => {
+      try {
+        setLoading(true);
+        const apiData = await timesheetService.getAllTimesheets();
+        if (!Array.isArray(apiData)) {
+          throw new Error("Dữ liệu trả về không phải là một mảng");
+        }
+        const transformedData = apiData.map((item) => ({
+          code: item?.employee?.employeeId || "",
+          name: item?.employee?.name || "Unknown",
+          checkInTime: item?.checkIn || "",
+          checkOutTime: item?.checkOut || "",
+          totalHours: 0,
+        }));
+        setTimesheets(transformedData);
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+        message.error("Không thể tải danh sách chấm công");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchTimesheets = async () => {
-    try {
-      setLoading(true);
-      const data = await timesheetService.getAllTimesheets();
-      setTimesheets(data);
-      calculateStatistics(data);
-    } catch (error) {
-      message.error("Không thể tải dữ liệu chấm công");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const calculateStatistics = (data) => {
-    const stats = data.reduce(
-      (acc, curr) => {
-        if (curr.status === "present") acc.present++;
-        else if (curr.status === "late") acc.late++;
-        else if (curr.status === "absent") acc.absent++;
-        else if (curr.status === "leave") acc.onLeave++;
-        return acc;
-      },
-      { present: 0, late: 0, absent: 0, onLeave: 0 }
-    );
-    setStatistics(stats);
-  };
-
-  const handleCheckIn = async (employeeId) => {
-    try {
-      const currentTime = moment().toISOString(); // Lấy thời gian hiện tại
-      await timesheetService.checkIn(employeeId, currentTime); // Gửi thời gian lên server
-      message.success("Đã check-in thành công");
+    useEffect(() => {
       fetchTimesheets();
-    } catch (error) {
-      message.error("Không thể check-in");
-    }
-  };
+    }, [selectedDate]);
 
-  const handleCheckOut = async (timesheetId) => {
-    try {
-      const currentTime = moment().toISOString();
-      await timesheetService.checkOut(timesheetId, currentTime);
-      message.success("Đã check-out thành công");
-      fetchTimesheets();
-    } catch (error) {
-      message.error("Không thể check-out");
-    }
-  };
+//  const calculateStatistics = (data) => {
+//    const stats = data.reduce(
+//      (acc, curr) => {
+//        if (curr.status === "present") acc.present++;
+//        else if (curr.status === "late") acc.late++;
+//        else if (curr.status === "absent") acc.absent++;
+//        else if (curr.status === "leave") acc.onLeave++;
+//        return acc;
+//      },
+//      { present: 0, late: 0, absent: 0, onLeave: 0 }
+//    );
+//    setStatistics(stats);
+//  };
+//
+//  const handleCheckIn = async (employeeId) => {
+//    try {
+//      const currentTime = moment().toISOString(); // Lấy thời gian hiện tại
+//      await timesheetService.checkIn(employeeId, currentTime); // Gửi thời gian lên server
+//      message.success("Đã check-in thành công");
+//      fetchTimesheets();
+//    } catch (error) {
+//      message.error("Không thể check-in");
+//    }
+//  };
+//
+//  const handleCheckOut = async (timesheetId) => {
+//    try {
+//      const currentTime = moment().toISOString();
+//      await timesheetService.checkOut(timesheetId, currentTime);
+//      message.success("Đã check-out thành công");
+//      fetchTimesheets();
+//    } catch (error) {
+//      message.error("Không thể check-out");
+//    }
+//  };
 
   const columns = [
     {
@@ -109,8 +120,8 @@ const TimesheetList = () => {
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
-            <div className="font-medium">{record.employee?.fullName}</div>
-            <div className="text-gray-500 text-sm">{record.employee?.code}</div>
+            <div className="font-medium">{record.name}</div>
+            <div className="text-gray-500 text-sm">{record.code}</div>
           </div>
         </Space>
       ),
@@ -142,21 +153,21 @@ const TimesheetList = () => {
     {
       title: "Thao tác",
       key: "actions",
-      render: (_, record) => (
-        <Space>
-          {!record.checkInTime && (
-            <Button
-              type="primary"
-              onClick={() => handleCheckIn(record.employeeId)}
-            >
-              Check-in
-            </Button>
-          )}
-          {record.checkInTime && !record.checkOutTime && (
-            <Button onClick={() => handleCheckOut(record.id)}>Check-out</Button>
-          )}
-        </Space>
-      ),
+//      render: (_, record) => (
+//        <Space>
+//          {!record.checkInTime && (
+//            <Button
+//              type="primary"
+//
+//            >
+//              Check-in
+//            </Button>
+//          )}
+//          {record.checkInTime && !record.checkOutTime && (
+//
+//          )}
+//        </Space>
+//      ),
     },
   ];
 

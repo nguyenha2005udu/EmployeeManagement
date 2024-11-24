@@ -1,32 +1,12 @@
 
+import axios from "axios";
+
+const API_URL = "http://localhost:8080/user-management/attendances/get-all";
 
 export const timesheetService = {
   getAllTimesheets: async () => {
-    return await fetch('/attendances/get-all').then((res) => res.json());
+    const response = await axios.get(API_URL);
+    return response.data;
   },
-  checkIn: async (employeeId, time) => {
-    // Gửi yêu cầu check-in
-    return await fetch(`/attendances/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeId, checkIn: time }),
-    });
-  },
-  checkOut: async (timesheetId, time) => {
-    // Gửi yêu cầu check-out
-    return await fetch(`/attendances/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ timesheetId, checkOut: time }),
-    });
-  },
-};
+}
 
-//  submitLeaveRequest: async (data) => {
-//    return new Promise((resolve) => {
-//      setTimeout(() => {
-//        resolve({ success: true, message: "Gửi đơn thành công" });
-//      }, 500);
-//    });
-//  },
-//};
