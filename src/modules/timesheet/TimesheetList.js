@@ -28,6 +28,7 @@ import {
   CalendarOutlined,
   UserOutlined,
   TableOutlined,
+  PlusOutlined
 } from "@ant-design/icons";
 import moment from "moment";
 
@@ -41,6 +42,8 @@ const TimesheetList = () => {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(moment());
     const [viewMode, setViewMode] = useState("list");
+    const [modalVisible, setModalVisible] = useState(false);
+    const [form] = Form.useForm();
     const [statistics, setStatistics] = useState({
         present: 0,
         late: 0,
@@ -51,16 +54,21 @@ const TimesheetList = () => {
     const fetchTimesheets = async () => {
       try {
         setLoading(true);
-        const apiData = await timesheetService.getAllTimesheets();
+        const apiData = await timesheetService.getAllTimesheets(selectedDate);
         if (!Array.isArray(apiData)) {
           throw new Error("Dữ liệu trả về không phải là một mảng");
         }
         const transformedData = apiData.map((item) => ({
-          code: item?.employee?.employeeId || "",
-          name: item?.employee?.name || "Unknown",
+          id: item.id,
+          employee: {
+              employeeId: item.employee.employeeId || "",
+              name: item.employee.name || "",
+          },
           checkInTime: item?.checkIn || "",
           checkOutTime: item?.checkOut || "",
           totalHours: 0,
+          date: item.date,
+
         }));
         setTimesheets(transformedData);
       } catch (error) {
@@ -72,45 +80,122 @@ const TimesheetList = () => {
     };
 
 
-    useEffect(() => {
-      fetchTimesheets();
-    }, [selectedDate]);
+      useEffect(() => {
+          fetchTimesheets();
+        }, [selectedDate]);
 
-//  const calculateStatistics = (data) => {
-//    const stats = data.reduce(
-//      (acc, curr) => {
-//        if (curr.status === "present") acc.present++;
-//        else if (curr.status === "late") acc.late++;
-//        else if (curr.status === "absent") acc.absent++;
-//        else if (curr.status === "leave") acc.onLeave++;
-//        return acc;
-//      },
-//      { present: 0, late: 0, absent: 0, onLeave: 0 }
-//    );
-//    setStatistics(stats);
-//  };
-//
-//  const handleCheckIn = async (employeeId) => {
-//    try {
-//      const currentTime = moment().toISOString(); // Lấy thời gian hiện tại
-//      await timesheetService.checkIn(employeeId, currentTime); // Gửi thời gian lên server
-//      message.success("Đã check-in thành công");
-//      fetchTimesheets();
-//    } catch (error) {
-//      message.error("Không thể check-in");
-//    }
-//  };
-//
-//  const handleCheckOut = async (timesheetId) => {
-//    try {
-//      const currentTime = moment().toISOString();
-//      await timesheetService.checkOut(timesheetId, currentTime);
-//      message.success("Đã check-out thành công");
-//      fetchTimesheets();
-//    } catch (error) {
-//      message.error("Không thể check-out");
-//    }
-//  };
+    const handleAdd = () => {
+        form.resetFields();
+
+        setModalVisible(true);
+      };
+
+ const currentTime = new Date(); // Lấy thời gian hiện tại dưới dạng địa phương
+const handleSubmit = async (values) => {
+  const currentDate = moment(currentTime).format("YYYY-MM-DD");
+
+  // Check if the employee already has a timesheet entry for the current date
+  const existingRecord = timesheets.find(
+    (t) => t.employee.employeeId === values.employeeId && currentDate === t.date
+  );
+
+  if (existingRecord) {
+    message.warning('Bạn đã check-in trong ngày hôm nay.');
+    setModalVisible(false);
+    return;
+  }
+
+  const employeeCheckin = {
+    id: timesheets.length + 1,
+    employee: {
+      employeeId: values.employeeId || '',
+    },
+  };
+
+  try {
+    await axios.post('http://localhost:8386/management/attendances/add', employeeCheckin);
+    setTimesheets([employeeCheckin, ...timesheets]); // Add new check-in to the state
+    message.success('Check-in thành công!');
+    setModalVisible(false);
+  } catch (error) {
+    console.error('Check-in error:', error);
+    message.error('Không thể check-in');
+    setModalVisible(false);
+  }
+};
+
+
+  const calculateStatistics = (data) => {
+    const stats = data.reduce(
+      (acc, curr) => {
+        if (curr.status === "present") acc.present++;
+        else if (curr.status === "late") acc.late++;
+        else if (curr.status === "absent") acc.absent++;
+        else if (curr.status === "leave") acc.onLeave++;
+        return acc;
+      },
+      { present: 0, late: 0, absent: 0, onLeave: 0 }
+    );
+    setStatistics(stats);
+  };
+
+  const handleCheckIn = async (id) => {
+    try {
+
+      const checkInTime = moment(currentTime).format("YYYY-MM-DDTHH:mm:ss");
+     console.log("Check-in ID:", id, "Local Time:", currentTime, "abc", checkInTime); // Thời gian check-in theo định dạng "YYYY-MM-DDTHH:mm:ss"
+
+
+      await timesheetService.checkIn(id, checkInTime);
+
+      setTimesheets((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, checkInTime: checkInTime } : t
+        )
+      );
+
+      console.log("Timesheets after Check-in:", timesheets); // Log toàn bộ timesheets sau khi check-in
+
+      message.success("Check-in thành công!");
+    } catch (error) {
+      console.error("Check-in error:", error);
+      message.error("Không thể check-in");
+    }
+  };
+
+
+  const handleCheckOut = async (id) => {
+    try {
+      const currentTimesheet = timesheets.find((t) => t.id === id);
+
+      if (!currentTimesheet || !currentTimesheet.checkInTime) {
+        message.error("Không tìm thấy dữ liệu check-in để check-out.");
+        return;
+      }
+
+      const checkInTime = currentTimesheet.checkInTime; // Lấy thời gian check-in cũ
+      const checkOutTime = moment(currentTime).format("YYYY-MM-DDTHH:mm:ss");
+      console.log("Check-out ID:", id, "Check-In Time:", checkInTime, "Local Time:", checkOutTime); // Log dữ liệu check-out với giờ địa phương
+
+      await timesheetService.checkOut(id, checkInTime, checkOutTime);
+
+      setTimesheets((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, checkOutTime: checkOutTime } : t
+        )
+      );
+
+      console.log("Updated Timesheets:", timesheets); // Log toàn bộ dữ liệu timesheets sau cập nhật
+
+      message.success("Check-out thành công!");
+    } catch (error) {
+      console.error("Check-out error:", error);
+      message.error("Không thể check-out");
+    }
+  };
+
+
+
 
   const columns = [
     {
@@ -120,12 +205,13 @@ const TimesheetList = () => {
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
-            <div className="font-medium">{record.name}</div>
-            <div className="text-gray-500 text-sm">{record.code}</div>
+            <div className="font-medium">{record.employee.employeeId}</div>
+            <div className="text-gray-500 text-sm">{record.employee.name}</div>
           </div>
         </Space>
       ),
     },
+
     {
       title: "Check-in",
       dataIndex: "checkInTime",
@@ -149,27 +235,32 @@ const TimesheetList = () => {
         return `${duration.hours()}h ${duration.minutes()}m`;
       },
     },
-
     {
       title: "Thao tác",
       key: "actions",
-//      render: (_, record) => (
-//        <Space>
-//          {!record.checkInTime && (
-//            <Button
-//              type="primary"
-//
-//            >
-//              Check-in
-//            </Button>
-//          )}
-//          {record.checkInTime && !record.checkOutTime && (
-//
-//          )}
-//        </Space>
-//      ),
+      render: (_, record) => (
+        <Space>
+          {!record.checkInTime && (
+            <Button
+              type="primary"
+              onClick={() => handleCheckIn(record.id)} // Gọi hàm Check-in
+            >
+              Check-in
+            </Button>
+          )}
+          {record.checkInTime && !record.checkOutTime && (
+            <Button
+              type="default"
+              onClick={() => handleCheckOut(record.id)} // Gọi hàm Check-out
+            >
+              Check-out
+            </Button>
+          )}
+        </Space>
+      ),
     },
   ];
+
 
   const calendarCellRender = (date) => {
     const dayData = timesheets.filter(
@@ -217,6 +308,39 @@ const TimesheetList = () => {
                 <Button type="primary" icon={<FileExcelOutlined />}>
                   Xuất báo cáo
                 </Button>
+                <Button
+                    type="primary"
+                    onClick={handleAdd}
+                    icon={<PlusOutlined />}
+                    size="large"
+                    className="min-w-[160px] ml-20"
+                  >
+                    Nhâp mã Nhân Viên
+                </Button>
+                <Modal
+                  visible={modalVisible}
+                  title="Nhâp mã Nhân Viên"
+                  onCancel={() => setModalVisible(false)}
+                  footer={[
+                    <Button key="cancel" onClick={() => setModalVisible(false)}>
+                      Hủy
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={() => form.submit()}>
+                      Thêm
+                    </Button>,
+                  ]}
+                >
+                  <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                    <Form.Item
+                      name="employeeId"
+                      label="Mã nhân viên"
+                      rules={[{ required: true, message: "Vui lòng nhập mã nhân viên" }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Form>
+                </Modal>
+
               </Space>
             </div>
 

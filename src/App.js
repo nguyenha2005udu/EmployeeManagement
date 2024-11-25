@@ -11,11 +11,11 @@ import OvertimeList from "./modules/payroll/OvertimeList";
 import AllowanceList from "./modules/payroll/AllowanceList";
 import LeaveRequestList from "./modules/leave/LeaveRequestList";
 import DepartmentList from "./modules/department/DepartmentList";
-import DepartmentForm from "./modules/department/DepartmentForm";
+import DepartmentForm from "./modules/department/DepartmentForm.js";
 import TimesheetList from "./modules/timesheet/TimesheetList";
 import PositionList from "./modules/position/PositionList";
 import ScheduleList from "./modules/timesheet/ScheduleList";
-
+import DepartmentPositions from "./modules/department-position/DepartmentPosition";
 // Import Settings components
 import UserManagement from "./modules/settings/UserManagement";
 import RoleManagement from "./modules/settings/RoleManagement";
@@ -25,6 +25,7 @@ import ReportList from "./modules/reports/ReportList";
 import AttendanceReport from "./modules/reports/AttendanceReport";
 import PayrollReport from "./modules/reports/PayrollReport";
 import PerformanceReport from "./modules/reports/PerformanceReport";
+
 
 // Import Inbox component
 import InboxList from "./modules/inbox/InboxList";
@@ -80,6 +81,10 @@ const App = () => {
             path="/positions"
             element={<PositionList service={positionService} />}
           />
+          <Route
+              path="/department-positions"
+              element={<DepartmentPositions />}
+            />
 
           {/* Chấm công & nghỉ phép */}
           <Route

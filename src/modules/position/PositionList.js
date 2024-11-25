@@ -26,69 +26,37 @@ import {
   DollarOutlined,
   BankOutlined,
 } from "@ant-design/icons";
-
-import { employeeService } from "../../services/employeeService.js";
+import { employeeService } from "../../services/employeeService";
 import { positionService } from "../../services/positionService.js";
 
 const PositionList = () => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [departmentPositions, setDepartmentPositions] = useState([]);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const [form] = Form.useForm();
 
-    const fetchPositionsData = async () => {
+    const fetchPositions = async () => {
       try {
           setLoading(true);
-          const [employees, positionsData] = await Promise.all([
-              employeeService.getAllEmployees(),
-              positionService.getAllPositions(),
-          ]);
+              const apiData = await positionService.getAllPositions();
+          console.log("Positions Data:", apiData);
 
-          console.log("Employees Data:", employees);
-          console.log("Positions Data:", positionsData);
-
-          // Lấy danh sách các mã chức vụ mà nhân viên đã sử dụng
-          const employeePositionIds = employees.map((employee) => employee.position.id);
-          // Hiển thị dữ liệu nhân viên trước
-          const formattedEmployees = employees.map((item) => ({
-              id: item.id,
-              positionCode: item.position.positionCode,
-              positionName: item.position.positionName,
+          const transformedData = apiData.map((item) => ({
+              positionCode: item.positionCode,
+              positionName: item.positionName,
               department: {
-                 departmentId: item.department?.id || "",
+                 departmentCode: item.department?.departmentCode || "",
                  departmentName: item.department?.departmentName || "",
               },
               basicSalary: item?.basicSalary || 0,
               status: item.department?.status || false,
           }));
+          setPositions(transformedData)
 
-          setPositions(formattedEmployees);
-
-          // Loại bỏ các chức vụ đã có nhân viên sử dụng (dựa trên mã chức vụ)
-          const filteredPositions = positionsData.filter(
-              (position) => !employeePositionIds.includes(position.id)
-
-          );
-            console.log("Employees position trùng:", filteredPositions);
-          // Hiển thị các chức vụ còn lại
-          const formattedPositions = filteredPositions.map((item) => ({
-              id: item.id,
-              positionCode: item.positionCode,
-              positionName: item.positionName,
-             department: {
-                       departmentId: item.department?.id || "",
-                       departmentName: item.department?.departmentName || "",
-                     },
-              status: item.department.status
-          }));
-
-          // Cập nhật danh sách các chức vụ còn lại
-          setPositions((prevPositions) => [
-              ...prevPositions,
-              ...formattedPositions,
-          ]);
 
       } catch (error) {
           console.error("Lỗi khi tải dữ liệu:", error);
@@ -97,8 +65,68 @@ const PositionList = () => {
           setLoading(false);
       }
     };
+
+
+    const fetchEmployees = async () => {
+        try {
+          setLoading(true);
+          const apiData = await employeeService.getAllEmployees();
+          const transformedData = apiData.map((item) => ({
+            employeeId: item.employeeId || "",
+            name: item.name || "",
+            department: {
+              departmentCode: item.department?.departmentCode || "",
+              departmentName: item.department?.departmentName || "",
+            },
+            position: {
+              positionCode: item.position?.positionCode || "",
+              positionName: item.position?.positionName || "",
+            },
+            status: item.department?.status || "inactive",
+          }));
+          setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+          message.error("Không thể tải danh sách nhân viên");
+        } finally {
+          setLoading(false);
+        }
+      };
+const fetchDepartmentPositions = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        "http://localhost:8386/management/department-positions/get-all"
+      );
+      const apiData = response.data;
+      console.log("Dữ liệu API trả về:", apiData);
+      // Kiểm tra nếu apiData là một mảng
+      if (!Array.isArray(apiData)) {
+        throw new Error("Dữ liệu trả về không phải là mảng");
+      }
+      const transformedData = apiData.map((item) => ({
+        id: item.id,
+        department: {
+          departmentCode: item.department?.departmentCode || "",
+        },
+        position: {
+          positionCode: item.position?.positionCode || "",
+        },
+      }));
+      setDepartmentPositions(transformedData);
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error);
+      message.error("Không thể tải danh sách vị trí các phòng ban");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
     useEffect(() => {
-     fetchPositionsData();
+     fetchPositions();
+     fetchEmployees();
+     fetchDepartmentPositions();
     }, []);
 
 
@@ -119,7 +147,7 @@ const PositionList = () => {
       onOk: async () => { // Make onOk async
         try {
           // Send DELETE request to the backend API
-          await axios.delete(`http://localhost:8080/user-management/positions/${id}`);
+          await axios.delete(`http://localhost:8386/management/positions/${id}`);
 
           // Update the positions state by filtering out the deleted position
           setPositions(positions.filter(item => item.positionCode !== id));
@@ -142,16 +170,12 @@ const PositionList = () => {
         id: positions.length + 1,
         positionCode: values.positionCode,
         positionName: values.positionName,
-        department: {
-           id:values.departmentId
-        },
-
-         basicSalary: 0,
+         basicSalary: values.basicSalary,
       };
 
 
     const response = axios.post(
-      "http://localhost:8080/user-management/positions/add",
+      "http://localhost:8386/management/positions/add",
       newPosition
     );
     setPositions([...positions, newPosition]);
@@ -183,13 +207,26 @@ const PositionList = () => {
     {
       title: "Phòng ban",
       dataIndex: "department",
-      key: "department",
-      render: (department) => (
-        <Tag color="blue" icon={<BankOutlined />}>
-          {department.departmentName}
-        </Tag>
-      ),
+      key: "allDepartment",
+      render: (allDepartment, record) => {
+        const departments = departmentPositions.filter(
+          (emp) => emp.position.positionCode === record?.positionCode
+        );
+
+        const departmentCodes = departments.map((d) => d.department.departmentCode);
+        return (
+          <Space>
+            <Tag color="blue" icon={<BankOutlined />}>
+            <a href="http://localhost:3000/department-positions">
+              {departmentCodes.length > 0 ? departmentCodes.join(" - ") : "Chưa có phòng ban"}
+              </a>
+            </Tag>
+          </Space>
+
+        );
+      },
     },
+
 
     {
       title: "Lương cơ bản",
@@ -209,18 +246,24 @@ const PositionList = () => {
 
 
     {
-      title: "Số nhân viên",
+          title: "Số nhân viên",
+          dataIndex: "employeeCount",
+          key: "employeeCount",
+          render: (employeeCount, record) => {
+            // Tìm số lượng nhân viên trong phòng ban hiện tại
+            const count = employees.filter(
+              (emp) => emp.position.positionCode === record.positionCode
+            ).length;
 
-      dataIndex: "employeeCount",
-
-      key: "employeeCount",
-
-      render: (count) => (
-        <Tag color="purple" icon={<TeamOutlined />}>
-          {count} người
-        </Tag>
-      ),
-    },
+            return (
+              <Space>
+                <Tag color="blue" icon={<TeamOutlined />}>
+                  {count} nhân viên
+                </Tag>
+              </Space>
+            );
+          },
+        },
 
     {
       title: "Trạng thái",
@@ -300,6 +343,18 @@ const PositionList = () => {
                               />
                           </Card>
                       </Col>
+                      <Col span={8}>
+                          <Card bordered={false}>
+                            <Statistic
+                              title="Tổng nhân viên"
+                              value={positions.reduce(
+                                (acc, curr) => acc + (curr.employeeCount || 0),
+                                0
+                              )}
+                              prefix={<TeamOutlined />}
+                            />
+                          </Card>
+                        </Col>
                   </Row>
 
 
@@ -332,14 +387,18 @@ const PositionList = () => {
                           >
                               <Input />
                           </Form.Item>
-                          <Form.Item
-                              name="departmentId"
-                              label="Mã phòng ban"
-                              rules={[{ required: true, message: "Vui lòng nhập Mã phòng ban" }]}
-                          >
+                           <Form.Item
+                              name="basicSalary"
+                              label="Lương cơ bản"
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Vui lòng nhập số lương cơ bản của bạn",
+                                },
+                              ]}
+                           >
                               <Input />
-                          </Form.Item>
-
+                           </Form.Item>
 
                           <Form.Item className="text-right">
                               <Space>

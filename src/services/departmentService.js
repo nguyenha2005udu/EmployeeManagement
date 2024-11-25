@@ -1,7 +1,7 @@
 //import { departmentsData } from "../utils/mockData";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/user-management/departments/get-all";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8386/management/departments/get-all";
 
 
 export const departmentService = {

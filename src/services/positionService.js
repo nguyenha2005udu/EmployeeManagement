@@ -1,6 +1,6 @@
 //import { positionsData } from "../utils/mockData";
 import axios from "axios";
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/user-management/positions/get-all";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8386/management/positions/get-all";
 export const positionService = {
   getAllPositions: async () => {
     const response = await axios.get(API_URL);

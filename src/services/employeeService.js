@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/user-management/employees/get-all";
+const API_URL = "http://localhost:8386/management/employees/get-all";
 
 export const employeeService = {
   getAllEmployees: async () => {

@@ -17,6 +17,7 @@ import {
   Row,
   Col,
   Avatar,
+  List
 } from "antd";
 import {
   PlusOutlined,
@@ -31,20 +32,24 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { departmentService } from "../../services/departmentService";
+import { employeeService } from "../../services/employeeService";
 
 const { Search } = Input;
+
 const getStatusColor = (status) => {
   switch (status) {
-    case "Active":
+    case "active":
       return "success";
-    case "Inactive":
+    case "inactive":
       return "error";
     default:
       return "default";
   }
 };
+
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -53,61 +58,80 @@ const DepartmentList = () => {
 
   useEffect(() => {
     fetchDepartments();
+    fetchEmployees();
   }, []);
 
   const fetchDepartments = async () => {
-        try {
-          setLoading(true);
-          const apiData = await departmentService.getAllDepartments();
-          console.log("Dữ liệu trả về từ API:", apiData);
-          const transformedData = apiData.map((item) => ({
-            id: item.id,
-            departmentCode: item.departmentCode || "",
-            foundingYear: item.foundingYear,
-            departmentName: item.departmentName || "",
-            status: item.status
-          }));
+    try {
+      setLoading(true);
+      const apiData = await departmentService.getAllDepartments();
+      const transformedData = apiData.map((item) => ({
+        id: item.id,
+        departmentCode: item.departmentCode || "",
+        foundingYear: item.foundingYear,
+        departmentName: item.departmentName || "",
+        status: item.status,
+      }));
+      setDepartments(transformedData);
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error);
+      message.error("Không thể tải danh sách nhân viên");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-          setDepartments(transformedData);
-        } catch (error) {
-          console.error("Lỗi khi gọi API:", error);
-          message.error("Không thể tải danh sách nhân viên");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-  const filteredDepartments = departments.filter(
-    (dept) =>
-      dept.departmentName?.toLowerCase().includes(searchText.toLowerCase()) ||
-      dept.code?.toLowerCase().includes(searchText.toLowerCase())
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const apiData = await employeeService.getAllEmployees();
+      const transformedData = apiData.map((item) => ({
+        employeeId: item.employeeId || "",
+        name: item.name || "",
+        department: {
+          departmentCode: item.department?.departmentCode || "",
+          departmentName: item.department?.departmentName || "",
+        },
+        position: {
+          positionCode: item.position?.positionCode || "",
+          positionName: item.position?.positionName || "",
+        },
+        status: item.department?.status || "inactive",
+      }));
+      setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error);
+      message.error("Không thể tải danh sách nhân viên");
+    } finally {
+      setLoading(false);
+    }
+  };
+const filteredDepartments = departments.filter((department) =>
+    department.departmentCode.toLowerCase().includes(searchText.toLowerCase())
   );
-    const handleAdd = () => {
-
-        form.resetFields();
-
-        setModalVisible(true);
-      };
-
+  const handleAdd = () => {
+    form.resetFields();
+    setModalVisible(true);
+  };
 
   const handleSubmit = (values) => {
-        const newDepartment = {
-          id: departments.length + 1,
-          ...values,
-        };
+    const newDepartment = {
+      id: departments.length + 1,
+      ...values,
+    };
+
+    const response = axios.post(
+      "http://localhost:8386/management/departments/add",
+      newDepartment
+    );
+    console.log(newDepartment);
+    setDepartments([...departments, newDepartment]);
+    message.success("Đã thêm chức vụ mới!");
+    setModalVisible(false);
+  };
 
 
-      const response = axios.post(
-        "http://localhost:8080/user-management/departments/add",
-        newDepartment
-      );
-      console.log(newDepartment)
-      setDepartments([...departments, newDepartment]);
-      message.success("Đã thêm chức vụ mới!");
-      setModalVisible(false);
-
-    }
-const handleDelete = (id) => {
+  const handleDelete = (id) => {
     Modal.confirm({
       title: "Bạn có chắc chắn muốn xóa Phòng ban này?",
       content: "Hành động này không thể hoàn tác",
@@ -116,23 +140,16 @@ const handleDelete = (id) => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          // Send DELETE request to the backend API
-          await axios.delete(`http://localhost:8080/user-management/departments/${id}`);
-
-          // Update the positions state by filtering out the deleted position
-          setDepartments(departments.filter(item => item.departmentCode !== id));
-
-          // Show success message
+          await axios.delete(`http://localhost:8386/management/departments/${id}`);
+          setDepartments(departments.filter((item) => item.departmentCode !== id));
           message.success("Đã xóa phòng ban");
         } catch (error) {
-          // Handle error (optional)
           message.error("Không thể xóa Phòng ban");
           console.error("Error deleting department:", error);
         }
       },
     });
   };
-
 
   const columns = [
     {
@@ -144,33 +161,54 @@ const handleDelete = (id) => {
             <BankOutlined className="text-blue-500" />
           </div>
           <div>
+            <a href="http://localhost:3000/department-positions">
             <div className="font-medium">{record.departmentName}</div>
             <div className="text-gray-500 text-sm">Mã: {record.departmentCode}</div>
+            </a>
           </div>
         </Space>
       ),
     },
     {
       title: "Trưởng phòng",
-      dataIndex: "manager",
-      key: "manager",
-      render: (manager) => (
-        <Space>
-          <Avatar icon={<UserOutlined />} />
-          <span>{manager?.name || "Chưa có"}</span>
-        </Space>
-      ),
+      dataIndex: "managerCode",
+      key: "managerCode",
+      render: (managerCode, record) => {
+        const manager = employees.find(
+          (emp) =>
+            emp.position.positionCode === "T" &&
+            emp.department.departmentCode === record.departmentCode
+        );
+        return (
+          <Space>
+            <Avatar icon={<UserOutlined />} />
+            <span>{manager ? manager.name : "Chưa có"}</span>
+          </Space>
+        );
+      },
     },
+
+
     {
       title: "Số nhân viên",
       dataIndex: "employeeCount",
       key: "employeeCount",
-      render: (count) => (
-        <Tag color="blue" icon={<TeamOutlined />}>
-          {count} nhân viên
-        </Tag>
-      ),
+      render: (employeeCount, record) => {
+        // Tìm số lượng nhân viên trong phòng ban hiện tại
+        const count = employees.filter(
+          (emp) => emp.department.departmentCode === record.departmentCode
+        ).length;
+
+        return (
+          <Space>
+            <Tag color="blue" icon={<TeamOutlined />}>
+              {count} nhân viên
+            </Tag>
+          </Space>
+        );
+      },
     },
+
     {
       title: "Năm thành lập",
       dataIndex: "foundingYear",
@@ -181,20 +219,17 @@ const handleDelete = (id) => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-        render: (status) => (
-           <Tag color={getStatusColor(status)}>
-               {status === "Active" ? "Đang hoạt động" : "Không hoạt động"}
-           </Tag>
-        ),
+      render: (status) => (
+        <Tag color={getStatusColor(status)}>
+          {status === "active" ? "Đang hoạt động" : "Không hoạt động"}
+        </Tag>
+      ),
     },
     {
       title: "Thao tác",
-
       key: "action",
-
       render: (_, record) => (
         <Space>
-
           <Tooltip title="Xóa">
             <Button
               type="text"
@@ -208,23 +243,19 @@ const handleDelete = (id) => {
     },
   ];
 
-
   return (
     <div className="p-6">
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold mb-2">Quản Lý Phòng Ban</h2>
-            <p className="text-gray-500">
-              Quản lý thông tin các phòng ban trong công ty
-            </p>
+            <p className="text-gray-500">Quản lý thông tin các phòng ban trong công ty</p>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                Thêm Phòng Ban
+            Thêm Phòng Ban
           </Button>
         </div>
 
-        {/* Thống kê tổng quan */}
         <Row gutter={16} className="mb-6">
           <Col span={8}>
             <Card bordered={false}>
@@ -249,10 +280,7 @@ const handleDelete = (id) => {
             <Card bordered={false}>
               <Statistic
                 title="Tổng nhân viên"
-                value={departments.reduce(
-                  (acc, curr) => acc + (curr.employeeCount || 0),
-                  0
-                )}
+                value={departments.reduce((acc, curr) => acc + (curr.employeeCount || 0), 0)}
                 prefix={<TeamOutlined />}
               />
             </Card>
@@ -268,10 +296,14 @@ const handleDelete = (id) => {
             prefix={<SearchOutlined className="text-gray-400" />}
           />
         </div>
+         <List
+            dataSource={filteredDepartments} // Hiển thị danh sách đã lọc
+            renderItem={(item) => <List.Item>{item.name}</List.Item>}
+          />
 
         <Table
           columns={columns}
-          dataSource={filteredDepartments}
+          dataSource={departments}
           loading={loading}
           rowKey="id"
           pagination={{
@@ -282,20 +314,21 @@ const handleDelete = (id) => {
             showQuickJumper: true,
           }}
         />
+
         <Modal
-          title= "Thêm Phòng Ban Mới"
+          title="Thêm Phòng Ban Mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
-      >
+        >
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
-              <Form.Item
-                  name="departmentCode"
-                  label="Mã phòng ban"
-                  rules={[{ required: true, message: "Vui lòng nhập mã phòng ban gồm 3 kí tự" }]}
-              >
-                  <Input />
-              </Form.Item>
+            <Form.Item
+              name="departmentCode"
+              label="Mã phòng ban"
+              rules={[{ required: true, message: "Vui lòng nhập mã phòng ban gồm 3 kí tự" }]}
+            >
+              <Input />
+            </Form.Item>
 
               <Form.Item
                   name="departmentName"
@@ -314,7 +347,7 @@ const handleDelete = (id) => {
               <Form.Item
                   name="status"
                   label="Trạng thái"
-                  rules={[{ required: true, message: "Vui lòng trạng thái của phòng ban (Active/Inactive)" }]}
+                  rules={[{ required: true, message: "Vui lòng trạng thái của phòng ban (active/inactive)" }]}
               >
                   <Input />
               </Form.Item>

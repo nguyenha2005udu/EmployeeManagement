@@ -50,15 +50,18 @@ const fetchTimesheets = async (month, year) => {
       apiData.map(async (item) => {
         const employeeId = item?.employee?.employeeId || "N/A";
         const totalHours = await axios.get(
-          `http://localhost:8080/user-management/attendances/total-hours/${employeeId}/${month}/${year}`
+          `http://localhost:8386/management/attendances/total-hours/${employeeId}/${month}/${year}`
         );
+        const workingDays = await axios.get(
+                  `http://localhost:8386/management/attendances/employee/${employeeId}/${month}/${year}`
+                );
         return {
           employeeId,
           fullName: item?.employee?.name || "Không rõ",
           department: item?.employee?.department?.departmentName || "Không rõ",
-          workingDays: item?.workingDays || 1,
+          workingDays: workingDays.data.length || 0,
           standardDays: item?.standardDays || 22,
-          basicSalary: item?.employee?.basicSalary || 0,
+          basicSalary: item?.employee?.position?.basicSalary || 0,
           allowance: item?.allowance || 0,
           totalHours: totalHours.data || 0,
           overtimePay: item?.overtimePay || 0,
@@ -80,35 +83,11 @@ const fetchTimesheets = async (month, year) => {
 
       return { totalSalary, overtimePay };
     };
-
-    // Gộp dữ liệu checkin và tổng tgian làm
-    const processDataSource = (data) => {
-      const groupedData = data.reduce((acc, curr) => {
-        const existing = acc.find((item) => item.employeeId === curr.employeeId);
-        if (existing) {
-          existing.totalHours += curr.totalHours || 0;
-          existing.workingDays += 1; // +1 check-in
-          existing.overtimePay += curr.overtimePay || 0;
-        } else {
-          acc.push({ ...curr, workingDays: 1 });
-        }
-        return acc;
-      }, []);
-
-      // Thêm dữ liệu tính lương
-      return groupedData.map((item) => {
-        const { totalSalary, overtimePay } = processTotalSalaries(item);
-
-        return {
-          ...item,
-          overtimePay,
-          totalSalary,
-        };
-      });
-    };
-
-    const processedData = processDataSource(transformedData);
-    setDataSource(processedData);
+    const enrichedData = transformedData.map((item) => ({
+      ...item,
+      ...processTotalSalaries(item),
+    }));
+    setDataSource(enrichedData);
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu:", error.message);
     message.error("Không thể tải danh sách chấm công: " + error.message);
@@ -133,19 +112,12 @@ const fetchTimesheets = async (month, year) => {
 
 
   useEffect(() => {
-      if (!selectedMonth) {
-        // Mặc định lấy dữ liệu tháng hiện tại khi không chọn
-        const currentDate = new Date();
-        const month = currentDate.getMonth() + 1;
-              const year = currentDate.getFullYear();
-              fetchTimesheets(month, year);
-            }
-          }, []);
+    if (!selectedMonth) {
+      const currentDate = new Date();
+      fetchTimesheets(currentDate.getMonth() + 1, currentDate.getFullYear());
+    }
+  }, [selectedMonth]);
 
-
-//  const handleMonthChange = (value) => {
-//    setSelectedMonth(value);
-//  };
 
   const columns = [
     {
