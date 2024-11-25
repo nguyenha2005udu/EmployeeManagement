@@ -80,7 +80,6 @@ const EmployeeList = () => {
           positionName: item.position?.positionName || "",
         },
         status: item.department?.status || "Inactive",
-
       }));
 
       setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
@@ -91,8 +90,6 @@ const EmployeeList = () => {
       setLoading(false);
     }
   };
-
-
 
   useEffect(() => {
     fetchEmployees();
@@ -106,60 +103,60 @@ const EmployeeList = () => {
     setCurrentEmployee(employee);
     setDrawerVisible(true);
   };
-   const handleAdd = () => {
+  const handleAdd = () => {
+    form.resetFields();
 
-        form.resetFields();
-
-        setModalVisible(true);
-      };
+    setModalVisible(true);
+  };
 
   const handleSubmit = (values) => {
-          const newEmployee = {
-            id: employees.length + 1,
-            name: values.name,
-            department: {
-               id:values.departmentId,
-            },
-            position: {
-               id: values.positionId
-            },
-            basicSalary: values.basicSalary
-          };
-        const response = axios.post(
-          "http://localhost:8080/user-management/employees/add-employee",
-          newEmployee
-        );
-        setEmployees([...employees, newEmployee]);
-        message.success("Đã thêm chức vụ mới!");
-        setModalVisible(false);
-
-      }
+    const newEmployee = {
+      id: employees.length + 1,
+      name: values.name,
+      department: {
+        id: values.departmentId,
+      },
+      position: {
+        id: values.positionId,
+      },
+      basicSalary: values.basicSalary,
+    };
+    const response = axios.post(
+      "http://localhost:8080/user-management/employees/add-employee",
+      newEmployee
+    );
+    setEmployees([...employees, newEmployee]);
+    message.success("Đã thêm chức vụ mới!");
+    setModalVisible(false);
+  };
 
   const handleDelete = (id) => {
-      Modal.confirm({
-        title: "Bạn có chắc chắn muốn xóa Nhân viên này?",
-        content: "Hành động này không thể hoàn tác",
-        okText: "Xóa",
-        okType: "danger",
-        cancelText: "Hủy",
-        onOk: async () => {
-          try {
-            // Send DELETE request to the backend API
-            await axios.delete(`http://localhost:8080/user-management/employees/${id}`);
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xóa Nhân viên này?",
+      content: "Hành động này không thể hoàn tác",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          // Send DELETE request to the backend API
+          await axios.delete(
+            `http://localhost:8080/user-management/employees/${id}`
+          );
 
-            // Update the positions state by filtering out the deleted position
-            setEmployees(employees.filter(item => item.employeeId !== id));
+          // Update the positions state by filtering out the deleted position
+          setEmployees(employees.filter((item) => item.employeeId !== id));
 
-            // Show success message
-            message.success("Đã xóa nhân viên");
-          } catch (error) {
-            // Handle error (optional)
-            message.error("Không thể xóa nhân viên");
-            console.error("Error deleting employee:", error);
-          }
-        },
-      });
-    };
+          // Show success message
+          message.success("Đã xóa nhân viên");
+        } catch (error) {
+          // Handle error (optional)
+          message.error("Không thể xóa nhân viên");
+          console.error("Error deleting employee:", error);
+        }
+      },
+    });
+  };
 
   const handleBulkAction = (action) => {
     confirm({
@@ -182,7 +179,9 @@ const EmployeeList = () => {
     try {
       await Promise.all(ids.map((id) => employeeService.deleteEmployee(id)));
       message.success(`Đã xóa ${ids.length} nhân viên`);
-      setEmployees((prev) => prev.filter((emp) => !ids.includes(emp.employeeId))); // Update local state
+      setEmployees((prev) =>
+        prev.filter((emp) => !ids.includes(emp.employeeId))
+      ); // Update local state
     } catch (error) {
       message.error("Có lỗi xảy ra khi xóa nhân viên");
     }
@@ -217,7 +216,9 @@ const EmployeeList = () => {
 
   const showEmployeeDetail = async (employeeId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/user-management/employees/${employeeId}`);
+      const response = await axios.get(
+        `http://localhost:8080/user-management/employees/${employeeId}`
+      );
       console.log(response.data);
       setDrawerVisible(true);
       setCurrentEmployee(response.data); // Set the employee data in the drawer for display
@@ -225,7 +226,6 @@ const EmployeeList = () => {
       message.error("Không thể tải thông tin chi tiết nhân viên");
     }
   };
-
 
   const filterMenu = (
     <Menu>
@@ -365,8 +365,10 @@ const EmployeeList = () => {
 
   const filteredEmployees = employees.filter((emp) => {
     const matchSearch =
-      (emp.name?.toLowerCase().includes(searchText.toLowerCase()) || false) ||
-      (emp.employeeId?.toLowerCase().includes(searchText.toLowerCase()) || false);
+      emp.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      false ||
+      emp.employeeId?.toLowerCase().includes(searchText.toLowerCase()) ||
+      false;
     const matchDepartment =
       filters.department === "all" || emp.department?.id === filters.department;
     const matchPosition =
@@ -377,47 +379,55 @@ const EmployeeList = () => {
     return matchSearch && matchDepartment && matchPosition && matchStatus;
   });
 
-
   return (
-    <div className="p-6">
-      <Card>
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Nhân Viên</h2>
-
+    <div className="p-10">
+      <Card className="p-6">
+        <div className="flex justify-between items-center mb-16">
+          <div className="space-y-5">
+            <h2 className="text-2xl font-bold mb-3">Quản Lý Nhân Viên</h2>
             <p className="text-gray-500">
               Quản lý thông tin và theo dõi nhân viên
             </p>
           </div>
 
-          <Button type="primary"  onClick={handleAdd} icon={<PlusOutlined />} size="large">
+          <Button
+            type="primary"
+            onClick={handleAdd}
+            icon={<PlusOutlined />}
+            size="large"
+            className="min-w-[160px] ml-20"
+          >
             Thêm Nhân Viên
           </Button>
         </div>
 
-        <div className="flex justify-between mb-6">
-          <Space>
-            <Search
-              placeholder="Tìm kiếm nhân viên..."
-              allowClear
-              onSearch={handleSearch}
-              style={{ width: 300 }}
-            />
-            <Dropdown overlay={filterMenu} trigger={["click"]}>
-              <Button icon={<FilterOutlined />}>Bộ lọc</Button>
-            </Dropdown>
-          </Space>
+        <div className="flex items-center gap-8 mb-10 mt-12">
+          <Search
+            placeholder="Tìm kiếm nhân viên..."
+            allowClear
+            onSearch={handleSearch}
+            style={{ width: 300 }}
+            className="mr-4"
+          />
 
-          <Space>
-            {selectedRows.length > 0 && (
-              <Dropdown overlay={bulkActionMenu}>
-                <Button>Thao tác hàng loạt ({selectedRows.length})</Button>
-              </Dropdown>
-            )}
-            <Button icon={<UploadOutlined />} onClick={handleImport}>
+          <Space size="large">
+            <Button icon={<FilterOutlined />} className="px-4">
+              Bộ lọc
+            </Button>
+
+            <Button
+              icon={<UploadOutlined />}
+              onClick={handleImport}
+              className="min-w-[120px] px-4"
+            >
               Import
             </Button>
-            <Button icon={<DownloadOutlined />} onClick={handleExport}>
+
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleExport}
+              className="min-w-[120px] px-4"
+            >
               Export
             </Button>
           </Space>
@@ -429,54 +439,68 @@ const EmployeeList = () => {
           dataSource={filteredEmployees}
           loading={loading}
           rowKey="id"
+          className="mt-10"
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Tổng số ${total} nhân viên`,
+          }}
         />
         <Modal
-          title= "Thêm Nhân Viên Mới"
+          title="Thêm Nhân Viên Mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
-      >
+        >
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
-              <Form.Item
-                  name="name"
-                  label="Họ và tên"
-                  rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
-              >
-                  <Input />
-              </Form.Item>
-
-              <Form.Item
-                  name="departmentId"
-                  label="Mã phòng ban"
-                  rules={[{ required: true, message: "Vui lòng nhập Mã phòng ban" }]}
-              >
-                  <Input />
-              </Form.Item>
-              <Form.Item
-                name="positionId"
-                label="Mã Vị Trí công việc"
-                rules={[{ required: true, message: "Vui lòng nhậpVị Trí công việc" }]}
+            <Form.Item
+              name="name"
+              label="Họ và tên"
+              rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
             >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                  name="basicSalary"
-                  label="Lương cơ bản"
-                  rules={[{ required: true, message: "Vui lòng nhập số lương cơ bản của bạn" }]}
-              >
-                  <Input />
-              </Form.Item>
+              <Input />
+            </Form.Item>
 
+            <Form.Item
+              name="departmentId"
+              label="Mã phòng ban"
+              rules={[
+                { required: true, message: "Vui lòng nhập Mã phòng ban" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="positionId"
+              label="Mã Vị Trí công việc"
+              rules={[
+                { required: true, message: "Vui lòng nhậpVị Trí công việc" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="basicSalary"
+              label="Lương cơ bản"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng nhập số lương cơ bản của bạn",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item className="text-right">
-                  <Space>
-                      <Button onClick={() => setModalVisible(false)}>Hủy</Button>
+            <Form.Item className="text-right">
+              <Space>
+                <Button onClick={() => setModalVisible(false)}>Hủy</Button>
 
-                      <Button type="primary" htmlType="submit">
-                          Thêm mới
-                      </Button>
-                  </Space>
-              </Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Thêm mới
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
         </Modal>
 

@@ -11,7 +11,7 @@ import OvertimeList from "./modules/payroll/OvertimeList";
 import AllowanceList from "./modules/payroll/AllowanceList";
 import LeaveRequestList from "./modules/leave/LeaveRequestList";
 import DepartmentList from "./modules/department/DepartmentList";
-import DepartmentForm from "./modules/department/DepartmentForm";
+import DepartmentForm from "./modules/department/DepartmentForm.js";
 import TimesheetList from "./modules/timesheet/TimesheetList";
 import PositionList from "./modules/position/PositionList";
 import ScheduleList from "./modules/timesheet/ScheduleList";
