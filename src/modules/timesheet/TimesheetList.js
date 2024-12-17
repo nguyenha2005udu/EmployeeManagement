@@ -36,6 +36,7 @@ import { timesheetService } from "../../services/timesheetService";
 import LeaveRequestList from "./LeaveRequestList";
 import ScheduleList from "./ScheduleList";
 const { TabPane } = Tabs;
+import { employeeService } from "../../services/employeeService";
 
 const TimesheetList = () => {
     const [timesheets, setTimesheets] = useState([]);
@@ -44,6 +45,8 @@ const TimesheetList = () => {
     const [viewMode, setViewMode] = useState("list");
     const [modalVisible, setModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [employees, setEmployees] = useState([]);
+
     const [statistics, setStatistics] = useState({
         present: 0,
         late: 0,
@@ -51,38 +54,57 @@ const TimesheetList = () => {
         onLeave: 0,
     });
 
-    const fetchTimesheets = async () => {
-      try {
-        setLoading(true);
-        const apiData = await timesheetService.getAllTimesheets(selectedDate);
-        if (!Array.isArray(apiData)) {
-          throw new Error("Dữ liệu trả về không phải là một mảng");
-        }
-        const transformedData = apiData.map((item) => ({
-          id: item.id,
-          employee: {
-              employeeId: item.employee.employeeId || "",
-              name: item.employee.name || "",
-          },
-          checkInTime: item?.checkIn || "",
-          checkOutTime: item?.checkOut || "",
-          totalHours: 0,
-          date: item.date,
+     const fetchTimesheets = async (day, month, year) => {
+       try {
+         setLoading(true);
+         const response = await axios.get(`http://localhost:8386/management/attendances/${day}/${month}/${year}`);
+         const timesheets = response.data.map((item) => ({
+           id: item.id,
+           employee: {
+             employeeId: item.employee?.employeeId || "",
+             name: item.employee?.name || "",
+           },
+           checkInTime: item?.checkIn || "",
+           checkOutTime: item?.checkOut || "",
+           date: item.date,
+           onLeave: item.isLeave || false, // Set onLeave flag
+         }));
 
-        }));
-        setTimesheets(transformedData);
-      } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
-        message.error("Không thể tải danh sách chấm công");
-      } finally {
-        setLoading(false);
-      }
-    };
+         setTimesheets(timesheets);
+         setStatistics(calculateStatistics(timesheets));
+       } catch (error) {
+         console.error("Lỗi khi tải dữ liệu:", error.message);
+       } finally {
+         setLoading(false);
+       }
+     };
 
 
       useEffect(() => {
+        const day = selectedDate.date();
+        const month = selectedDate.month() + 1;
+        const year = selectedDate.year();
+
+        fetchTimesheets(day, month, year);
+      }, [selectedDate]);
+      const fetchEmployees = async () => {
+          try {
+            setLoading(true);
+            const apiData = await employeeService.getAllEmployees();
+            setEmployees(apiData);
+          } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+            message.error("Không thể tải danh sách nhân viên");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        useEffect(() => {
           fetchTimesheets();
+          fetchEmployees();
         }, [selectedDate]);
+
 
     const handleAdd = () => {
         form.resetFields();
@@ -106,10 +128,12 @@ const handleSubmit = async (values) => {
   }
 
   const employeeCheckin = {
+
     id: timesheets.length + 1,
     employee: {
       employeeId: values.employeeId || '',
     },
+    date:currentDate,
   };
 
   try {
@@ -125,19 +149,28 @@ const handleSubmit = async (values) => {
 };
 
 
-  const calculateStatistics = (data) => {
-    const stats = data.reduce(
+  const calculateStatistics = (timesheets) => {
+    return timesheets.reduce(
       (acc, curr) => {
-        if (curr.status === "present") acc.present++;
-        else if (curr.status === "late") acc.late++;
-        else if (curr.status === "absent") acc.absent++;
-        else if (curr.status === "leave") acc.onLeave++;
+        if (!curr.checkInTime) {
+          acc.absent++;
+        } else {
+          const timePart = curr.checkInTime.split("T")[1];
+          if (timePart && moment(timePart, "HH:mm:ss").isBefore(moment("10:02:00", "HH:mm:ss"))) {
+            acc.present++;
+          } else {
+            acc.late++;
+          }
+        }
+        if (curr.onLeave) {
+          acc.onLeave++;
+        }
         return acc;
       },
       { present: 0, late: 0, absent: 0, onLeave: 0 }
     );
-    setStatistics(stats);
   };
+
 
   const handleCheckIn = async (id) => {
     try {
@@ -271,7 +304,7 @@ const handleSubmit = async (values) => {
       <ul className="events">
         {dayData.map((item, index) => (
           <li key={index}>
-            <Badge status={item.status} text={item.employee?.fullName} />
+            <Badge status={item.status} text={item.employee?.name} />
           </li>
         ))}
       </ul>
@@ -370,7 +403,7 @@ const handleSubmit = async (values) => {
                 <Card>
                   <Statistic
                     title="Vắng mặt"
-                    value={statistics.absent}
+                    value={employees.length - statistics.present - statistics.late}
                     valueStyle={{ color: "#cf1322" }}
                     prefix={<CloseCircleOutlined />}
                   />

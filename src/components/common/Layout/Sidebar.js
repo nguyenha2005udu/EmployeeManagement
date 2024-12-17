@@ -23,7 +23,7 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
     {
       key: "/",
       icon: <DashboardOutlined />,
-      label: <Link to="/">Bảng Điều Khiển</Link>,
+      label: <Link to="/admin">Bảng Điều Khiển</Link>,
     },
     {
       key: "employee",
@@ -32,15 +32,15 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
       children: [
         {
           key: "/employees",
-          label: <Link to="/employees">Danh Sách Nhân Viên</Link>,
+          label: <Link to="/admin/employees">Danh Sách Nhân Viên</Link>,
         },
         {
           key: "/positions",
-          label: <Link to="/positions">Chức Vụ</Link>,
+          label: <Link to="/admin/positions">Chức Vụ</Link>,
         },
         {
           key: "/departments",
-          label: <Link to="/departments">Phòng Ban</Link>,
+          label: <Link to="/admin/departments">Phòng Ban</Link>,
         },
       ],
     },
@@ -51,7 +51,7 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
       children: [
         {
           key: "/timekeeping",
-          label: <Link to="/timekeeping">Chấm Công</Link>,
+          label: <Link to="/admin/timekeeping">Chấm Công</Link>,
         },
         {
           key: "/leave-requests",
@@ -59,7 +59,7 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
         },
         {
           key: "/schedule",
-          label: <Link to="/schedule">Lịch Làm Việc</Link>,
+          label: <Link to="/admin/schedule">Lịch Làm Việc</Link>,
         },
       ],
     },
@@ -70,15 +70,15 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
       children: [
         {
           key: "/payroll",
-          label: <Link to="/payroll">Bảng Lương</Link>,
+          label: <Link to="/admin/payroll">Bảng Lương</Link>,
         },
         {
           key: "/overtime",
-          label: <Link to="/overtime">Quản Lý Tăng Ca</Link>,
+          label: <Link to="/admin/overtime">Quản Lý Tăng Ca</Link>,
         },
         {
           key: "/allowances",
-          label: <Link to="/allowances">Phụ Cấp & Thưởng</Link>,
+          label: <Link to="/admin/allowances">Phụ Cấp & Thưởng</Link>,
         },
       ],
     },
@@ -89,15 +89,15 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
       children: [
         {
           key: "/reports/attendance",
-          label: <Link to="/reports/attendance">Báo Cáo Chấm Công</Link>,
+          label: <Link to="/admin/reports/attendance">Báo Cáo Chấm Công</Link>,
         },
         {
           key: "/reports/payroll",
-          label: <Link to="/reports/payroll">Báo Cáo Lương</Link>,
+          label: <Link to="/admin/reports/payroll">Báo Cáo Lương</Link>,
         },
         {
           key: "/reports/performance",
-          label: <Link to="/reports/performance">Đánh Giá Nhân Viên</Link>,
+          label: <Link to="/admin/reports/performance">Đánh Giá Nhân Viên</Link>,
         },
       ],
     },
@@ -108,11 +108,11 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
       children: [
         {
           key: "/settings/users",
-          label: <Link to="/settings/users">Quản Lý Người Dùng</Link>,
+          label: <Link to="/admin/settings/users">Quản Lý Người Dùng</Link>,
         },
         {
           key: "/settings/roles",
-          label: <Link to="/settings/roles">Phân Quyền</Link>,
+          label: <Link to="/admin/settings/roles">Phân Quyền</Link>,
         },
       ],
     },

@@ -174,15 +174,16 @@ const filteredDepartments = departments.filter((department) =>
       dataIndex: "managerCode",
       key: "managerCode",
       render: (managerCode, record) => {
-        const manager = employees.find(
+        const manager = employees.filter(
           (emp) =>
             emp.position.positionCode === "T" &&
             emp.department.departmentCode === record.departmentCode
         );
+        const departmentCodes = manager.map((d) => d.name);
         return (
           <Space>
             <Avatar icon={<UserOutlined />} />
-            <span>{manager ? manager.name : "Chưa có"}</span>
+            {departmentCodes.length > 0 ? departmentCodes.join(" - ") : "Chưa có phòng ban"}
           </Space>
         );
       },
@@ -270,7 +271,7 @@ const filteredDepartments = departments.filter((department) =>
             <Card bordered={false}>
               <Statistic
                 title="Phòng ban đang hoạt động"
-                value={departments.filter((d) => d.status).length}
+                value={departments.filter((d) => d.status === "active").length}
                 prefix={<CheckCircleOutlined />}
                 valueStyle={{ color: "#3f8600" }}
               />
@@ -280,7 +281,7 @@ const filteredDepartments = departments.filter((department) =>
             <Card bordered={false}>
               <Statistic
                 title="Tổng nhân viên"
-                value={departments.reduce((acc, curr) => acc + (curr.employeeCount || 0), 0)}
+                value={employees.length}
                 prefix={<TeamOutlined />}
               />
             </Card>

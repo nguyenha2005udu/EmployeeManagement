@@ -25,7 +25,7 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from "@ant-design/icons";
-import { timesheetService } from "../../services/timesheetService";
+import { employeeService } from "../../services/employeeService";
 import axios from "axios";
 const { MonthPicker } = DatePicker;
 const { Option } = Select;
@@ -40,7 +40,7 @@ const PayrollList = () => {
 const fetchTimesheets = async (month, year) => {
   try {
     setLoading(true);
-    const apiData = await timesheetService.getAllTimesheets();
+      const apiData = await employeeService.getAllEmployees();
     if (!Array.isArray(apiData)) {
       throw new Error("Dữ liệu trả về không hợp lệ.");
     }
@@ -48,7 +48,7 @@ const fetchTimesheets = async (month, year) => {
     // Data transformation
     const transformedData = await Promise.all(
       apiData.map(async (item) => {
-        const employeeId = item?.employee?.employeeId || "N/A";
+        const employeeId = item?.employeeId || "N/A";
         const totalHours = await axios.get(
           `http://localhost:8386/management/attendances/total-hours/${employeeId}/${month}/${year}`
         );
@@ -57,11 +57,11 @@ const fetchTimesheets = async (month, year) => {
                 );
         return {
           employeeId,
-          fullName: item?.employee?.name || "Không rõ",
-          department: item?.employee?.department?.departmentName || "Không rõ",
+          fullName: item?.name || "Không rõ",
+          department: item?.department?.departmentName || "Không rõ",
           workingDays: workingDays.data.length || 0,
           standardDays: item?.standardDays || 22,
-          basicSalary: item?.employee?.position?.basicSalary || 0,
+          basicSalary: item?.position?.basicSalary || 0,
           allowance: item?.allowance || 0,
           totalHours: totalHours.data || 0,
           overtimePay: item?.overtimePay || 0,

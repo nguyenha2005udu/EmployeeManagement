@@ -36,9 +36,9 @@ const { TabPane } = Tabs;
 
 const getStatusColor = (status) => {
   switch (status) {
-    case "Active":
+    case "active":
       return "success";
-    case "Inactive":
+    case "inactive":
       return "error";
     default:
       return "default";
@@ -68,18 +68,17 @@ const EmployeeList = () => {
       console.log(Array.isArray(apiData));
       // Chuyển đổi dữ liệu API sang định dạng cần thiết
       const transformedData = apiData.map((item) => ({
-        id: item.id,
         employeeId: item.employeeId || "",
         name: item.name || "",
         department: {
-          departmentId: item.department?.id || "",
+          departmentCode: item.department?.departmentCode || "",
           departmentName: item.department?.departmentName || "",
         },
         position: {
-          positionId: item.position?.id || "",
+          positionCode: item.position?.positionCode || "",
           positionName: item.position?.positionName || "",
         },
-        status: item.department?.status || "Inactive",
+        status: item.department?.status || "active",
 
       }));
 
@@ -115,18 +114,16 @@ const EmployeeList = () => {
 
   const handleSubmit = (values) => {
           const newEmployee = {
-            id: employees.length + 1,
             name: values.name,
             department: {
-               id:values.departmentId,
+               departmentCode:values.departmentCode,
             },
             position: {
-               id: values.positionId
+               positionCode: values.positionCode
             },
-            basicSalary: values.basicSalary
           };
         const response = axios.post(
-          "http://localhost:8080/user-management/employees/add-employee",
+          "http://localhost:8386/management/employees/add",
           newEmployee
         );
         setEmployees([...employees, newEmployee]);
@@ -145,7 +142,7 @@ const EmployeeList = () => {
         onOk: async () => {
           try {
             // Send DELETE request to the backend API
-            await axios.delete(`http://localhost:8080/user-management/employees/${id}`);
+            await axios.delete(`http://localhost:8386/management/employees/${id}`);
 
             // Update the positions state by filtering out the deleted position
             setEmployees(employees.filter(item => item.employeeId !== id));
@@ -217,7 +214,7 @@ const EmployeeList = () => {
 
   const showEmployeeDetail = async (employeeId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/user-management/employees/${employeeId}`);
+      const response = await axios.get(`http://localhost:8386/management/employees/${employeeId}`);
       console.log(response.data);
       setDrawerVisible(true);
       setCurrentEmployee(response.data); // Set the employee data in the drawer for display
@@ -278,7 +275,7 @@ const EmployeeList = () => {
           <div>
             <div className="font-medium">{record.name}</div>
 
-            <div className="text-gray-500 text-sm">{record.email}</div>
+            <div className="text-gray-500 text-sm">{record.employeeId}</div>
           </div>
         </Space>
       ),
@@ -313,7 +310,7 @@ const EmployeeList = () => {
 
       render: (status) => (
         <Tag color={getStatusColor(status)}>
-          {status === "Active" ? "Đang làm việc" : "Đã nghỉ việc"}
+          {status === "active" ? "Đang làm việc" : "Đã nghỉ việc"}
         </Tag>
       ),
     },
@@ -446,27 +443,19 @@ const EmployeeList = () => {
               </Form.Item>
 
               <Form.Item
-                  name="departmentId"
+                  name="departmentCode"
                   label="Mã phòng ban"
                   rules={[{ required: true, message: "Vui lòng nhập Mã phòng ban" }]}
               >
                   <Input />
               </Form.Item>
               <Form.Item
-                name="positionId"
+                name="positionCode"
                 label="Mã Vị Trí công việc"
                 rules={[{ required: true, message: "Vui lòng nhậpVị Trí công việc" }]}
             >
                 <Input />
               </Form.Item>
-              <Form.Item
-                  name="basicSalary"
-                  label="Lương cơ bản"
-                  rules={[{ required: true, message: "Vui lòng nhập số lương cơ bản của bạn" }]}
-              >
-                  <Input />
-              </Form.Item>
-
 
               <Form.Item className="text-right">
                   <Space>

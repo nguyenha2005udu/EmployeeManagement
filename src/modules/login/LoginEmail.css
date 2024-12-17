@@ -1,0 +1,143 @@
+/* Container tổng */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f3f4f6; /* Màu nền xám nhạt */
+    font-family: 'Arial', sans-serif;
+    padding: 1rem;
+  }
+
+  /* Thẻ card chứa form */
+  .auth-card {
+    background-color: #ffffff; /* Màu nền trắng */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+
+  /* Header chính và phụ */
+  .auth-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+  }
+
+  .auth-subtext {
+    text-align: center;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  /* Container input */
+  .input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    background-color: #f9fafb;
+  }
+
+  .input-icon {
+    padding-left: 0.75rem;
+    color: #9ca3af;
+  }
+
+  .input-field {
+    flex: 1;
+    padding: 0.75rem;
+    padding-left: 0.5rem;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #333;
+  }
+
+  .input-field::placeholder {
+    color: #9ca3af;
+  }
+
+  /* Nút submit */
+  .primary-button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #2563eb; /* Màu xanh dương */
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .primary-button:hover {
+    background-color: #1d4ed8; /* Màu xanh đậm khi hover */
+  }
+
+  /* Link phụ */
+  .secondary-link {
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .secondary-link:hover {
+    color: #1d4ed8;
+  }
+
+  /* Thông báo lỗi */
+  .error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  /* Phần footer */
+  .bg-gray-50 {
+    background-color: #f9fafb;
+  }
+
+  .border-t {
+    border-top-width: 1px;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  /* Text utility */
+  .text-sm {
+    font-size: 0.875rem;
+  }
+
+  .text-gray-700 {
+    color: #374151;
+  }
+
+  .text-gray-400 {
+    color: #9ca3af;
+  }
+
+  .text-gray-600 {
+    color: #4b5563;
+  }
+
+  /* Khoảng cách */
+  .p-6 {
+    padding: 1.5rem;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+
+  .ml-1 {
+    margin-left: 0.25rem;
+  }

@@ -244,40 +244,44 @@ const fetchDepartmentPositions = async () => {
     },
 
 
-
     {
-          title: "Số nhân viên",
-          dataIndex: "employeeCount",
-          key: "employeeCount",
-          render: (employeeCount, record) => {
-            // Tìm số lượng nhân viên trong phòng ban hiện tại
-            const count = employees.filter(
-              (emp) => emp.position.positionCode === record.positionCode
-            ).length;
+      title: "Số nhân viên",
+      dataIndex: "employeeCount",
+      key: "employeeCount",
+      render: (employeeCount, record) => {
+        // Tìm số lượng nhân viên trong phòng ban hiện tại
+        const count = employees.filter(
+          (emp) => emp.position.positionCode === record.positionCode
+        ).length;
 
-            return (
-              <Space>
-                <Tag color="blue" icon={<TeamOutlined />}>
-                  {count} nhân viên
-                </Tag>
-              </Space>
-            );
-          },
-        },
+        return (
+          <Space>
+            <Tag color="blue" icon={<TeamOutlined />}>
+              {count} nhân viên
+            </Tag>
+          </Space>
+        );
+      },
+    },
 
     {
       title: "Trạng thái",
-
       dataIndex: "status",
+      key: "status", // Đổi key để tránh trùng lặp
+      render: (status, record) => {
+        // Tính số nhân viên liên quan đến vị trí này
+        const count = employees.filter(
+          (emp) => emp.position.positionCode === record.positionCode
+        ).length;
 
-      key: "status",
-
-      render: (status) => (
-        <Tag color={status ? "success" : "error"}>
-          {status ? "Đang sử dụng" : "Ngừng sử dụng"}
-        </Tag>
-      ),
+        return (
+          <Tag color={count > 0 ? "green" : "red"}>
+            {count > 0 ? "Đang sử dụng" : "Ngừng sử dụng"}
+          </Tag>
+        );
+      },
     },
+
 
     {
       title: "Thao tác",
@@ -347,10 +351,7 @@ const fetchDepartmentPositions = async () => {
                           <Card bordered={false}>
                             <Statistic
                               title="Tổng nhân viên"
-                              value={positions.reduce(
-                                (acc, curr) => acc + (curr.employeeCount || 0),
-                                0
-                              )}
+                              value={employees.length}
                               prefix={<TeamOutlined />}
                             />
                           </Card>

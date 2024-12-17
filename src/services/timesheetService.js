@@ -1,8 +1,9 @@
 
 import axios from "axios";
-
+import moment from "moment";
 const API_URL = "http://localhost:8386/management/attendances";
-
+const currentTime = new Date();
+const currentDate = moment(currentTime).format("YYYY-MM-DD");
 export const timesheetService = {
   getAllTimesheets: async () => {
     const response = await axios.get(`${API_URL}/get-all`);
@@ -12,7 +13,7 @@ export const timesheetService = {
   checkIn: async (id, checkInTime) => {
     const response = await axios.put(`${API_URL}/${id}`, {
       checkIn: checkInTime,
-      date: new Date().toISOString().split("T")[0],
+      date: currentDate,
 
     });
     return response.data;
@@ -21,7 +22,7 @@ export const timesheetService = {
     const response = await axios.put(`${API_URL}/${id}`, {
       checkIn: checkInTime,
       checkOut: checkOutTime,
-      date: new Date().toISOString().split("T")[0],
+      date: currentDate,
     });
     return response.data;
   },
