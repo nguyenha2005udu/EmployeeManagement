@@ -106,30 +106,40 @@ const DepartmentList = () => {
       setLoading(false);
     }
   };
-const filteredDepartments = departments.filter((department) =>
-    department.departmentCode.toLowerCase().includes(searchText.toLowerCase())
+// Tìm kiếm phòng ban theo tên hoặc mã phòng ban
+  const filteredDepartments = departments.filter(
+    (department) =>
+      department.departmentName
+        .toLowerCase()
+        .includes(searchText.toLowerCase()) || // Lọc theo tên phòng ban
+      department.departmentCode.toLowerCase().includes(searchText.toLowerCase()) // Lọc theo mã phòng ban
   );
+
   const handleAdd = () => {
     form.resetFields();
     setModalVisible(true);
   };
 
-  const handleSubmit = (values) => {
-    const newDepartment = {
-      id: departments.length + 1,
-      ...values,
-    };
+  const handleSubmit = async (values) => {
+    try {
+      const newDepartment = {
+        id: departments.length + 1,
+        ...values,
+      };
 
-    const response = axios.post(
-      "http://localhost:8386/management/departments/add",
-      newDepartment
-    );
-    console.log(newDepartment);
-    setDepartments([...departments, newDepartment]);
-    message.success("Đã thêm chức vụ mới!");
-    setModalVisible(false);
+      await axios.post(
+        "http://localhost:8386/management/departments/add",
+        newDepartment
+      );
+
+      setDepartments([...departments, newDepartment]);
+      message.success("Đã thêm phòng ban mới!");
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Lỗi khi thêm phòng ban:", error);
+      message.error("Không thể thêm phòng ban mới");
+    }
   };
-
 
   const handleDelete = (id) => {
     Modal.confirm({
@@ -289,18 +299,31 @@ const filteredDepartments = departments.filter((department) =>
         </Row>
 
         <div className="mb-6">
+          {/* Ô tìm kiếm */}
           <Search
             placeholder="Tìm kiếm phòng ban..."
             allowClear
-            onSearch={(value) => setSearchText(value)}
+            onSearch={(value) => setSearchText(value)} // Cập nhật giá trị tìm kiếm
+            onChange={(e) => setSearchText(e.target.value)} // Đảm bảo tìm kiếm theo từng ký tự
             style={{ width: 300 }}
             prefix={<SearchOutlined className="text-gray-400" />}
           />
         </div>
-         <List
-            dataSource={filteredDepartments} // Hiển thị danh sách đã lọc
-            renderItem={(item) => <List.Item>{item.name}</List.Item>}
-          />
+         {/* Danh sách phòng ban dạng List */}
+        <List
+          dataSource={filteredDepartments} // Hiển thị danh sách đã lọc
+          renderItem={(item) => (
+            <List.Item>
+              <div>
+                <strong>{item.departmentName}</strong> - {item.departmentCode}
+              </div>
+            </List.Item>
+          )}
+          locale={{
+            emptyText: "Không tìm thấy phòng ban phù hợp",
+          }}
+          style={{ marginBottom: "20px" }}
+        />
 
         <Table
           columns={columns}

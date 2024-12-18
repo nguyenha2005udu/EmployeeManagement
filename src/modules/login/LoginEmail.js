@@ -37,7 +37,7 @@ export default function LoginEmail() {
       if (matchedEmployee) {
         navigate('/admin') // Nếu là admin
       } else {
-        navigate(`/${employeeId}`) // Nếu là user
+        navigate(`/user/${employeeId}`) // Nếu là user
       }
     } catch (error) {
       setErrorMessage('Employee ID không chính xác hoặc không tồn tại.')

@@ -6,10 +6,11 @@ import {
   BellOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 
 const Navbar = ({ collapsed, toggleCollapse }) => {
   const location = useLocation();
+  const navigate = useNavigate(); // Hook điều hướng
 
   const userMenuItems = [
     {
@@ -24,6 +25,11 @@ const Navbar = ({ collapsed, toggleCollapse }) => {
       key: "logout",
       label: "Đăng xuất",
       danger: true,
+      onClick: () => {
+        // Xử lý logic logout và điều hướng về trang login
+        console.log("Logging out...");
+        navigate("/"); // Điều hướng đến trang login
+      },
     },
   ];
 
@@ -68,7 +74,13 @@ const Navbar = ({ collapsed, toggleCollapse }) => {
         <Badge count={3} offset={[-5, 5]}>
           <Button type="text" icon={<BellOutlined />} />
         </Badge>
-        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+        <Dropdown
+          menu={{
+            items: userMenuItems,
+          }}
+          placement="bottomRight"
+          arrow
+        >
           <Space className="user-dropdown">
             <Avatar size="small" icon={<UserOutlined />} />
             <span>Admin</span>

@@ -10,10 +10,12 @@ import {
 import moment from "moment";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import {Link, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const DardboardEmployees = () => {
-  const { employeeId } = useParams(); // Lấy employeeId từ URL
+const DashboardEmployees = () => {
+  const { employeeId } = useParams();
+  const navigate = useNavigate();
   const [timesheets, setTimesheets] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -116,7 +118,11 @@ useEffect(() => {
   };
 
 
-
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/");
+    message.success("Bạn đã đăng xuất thành công");
+  };
   const columns = [
     {
       title: "Ngày",
@@ -149,9 +155,15 @@ useEffect(() => {
   ];
 
   return (
+    
     <div style={{ padding: "32px", position: "relative", zIndex: 1 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <h2 className="text-2xl font-bold mb-8">Bảng Điều Khiển</h2>
-
+      <Button type="primary" danger onClick={handleLogout}>
+        Đăng Xuất
+      </Button>
+    </div>
+      
       {/* Thống kê chính */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col span={6}>
@@ -197,7 +209,7 @@ useEffect(() => {
       {/* Thống kê chấm công hôm nay */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col span={24}>
-          <Card title="Thống Kê Chấm Công Hôm Nay" hoverable className="h-full">
+          <Card title="Thống Kê Chấm Công" hoverable className="h-full">
             <Row gutter={[32, 16]}>
               <Col span={8}>
                 <Statistic
@@ -238,7 +250,9 @@ useEffect(() => {
             title="Thời gian chấm công"
             hoverable
             className="h-full"
-
+            extra={
+                <Link to={`/user/${employeeId}/payroll`}>Xem Bảng Lương</Link>
+              }
           >
             <Table
               dataSource={timesheets}
@@ -256,4 +270,4 @@ useEffect(() => {
   );
 };
 
-export default DardboardEmployees;
+export default DashboardEmployees;

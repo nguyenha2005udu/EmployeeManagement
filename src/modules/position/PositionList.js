@@ -15,6 +15,7 @@ import {
   Tooltip,
   Row,
   Col,
+  List,
   Statistic,
 } from "antd";
 
@@ -25,6 +26,7 @@ import {
   TeamOutlined,
   DollarOutlined,
   BankOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { employeeService } from "../../services/employeeService";
 import { positionService } from "../../services/positionService.js";
@@ -33,66 +35,73 @@ const PositionList = () => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [searchText, setSearchText] = useState(""); // Input tìm kiếm
   const [departmentPositions, setDepartmentPositions] = useState([]);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const { Search } = Input;
 
   const [form] = Form.useForm();
 
-    const fetchPositions = async () => {
-      try {
-          setLoading(true);
-              const apiData = await positionService.getAllPositions();
-          console.log("Positions Data:", apiData);
+  const fetchPositions = async () => {
+    try {
+      setLoading(true);
+      const apiData = await positionService.getAllPositions();
+      console.log("Positions Data:", apiData);
 
-          const transformedData = apiData.map((item) => ({
-              positionCode: item.positionCode,
-              positionName: item.positionName,
-              department: {
-                 departmentCode: item.department?.departmentCode || "",
-                 departmentName: item.department?.departmentName || "",
-              },
-              basicSalary: item?.basicSalary || 0,
-              status: item.department?.status || false,
-          }));
-          setPositions(transformedData)
+      const transformedData = apiData.map((item) => ({
+        positionCode: item.positionCode,
+        positionName: item.positionName,
+        department: {
+          departmentCode: item.department?.departmentCode || "",
+          departmentName: item.department?.departmentName || "",
+        },
+        basicSalary: item?.basicSalary || 0,
+        status: item.department?.status || false,
+      }));
+      setPositions(transformedData);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
+      message.error("Không thể tải dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Tìm kiếm chức vụ theo tên hoặc mã chức vụ
+  const filteredPositions = positions.filter(
+    (position) =>
+      position.positionName.toLowerCase().includes(searchText.toLowerCase()) || // Lọc theo tên chức vụ
+      position.positionCode.toLowerCase().includes(searchText.toLowerCase()) // Lọc theo mã chức vụ
+  );
 
-      } catch (error) {
-          console.error("Lỗi khi tải dữ liệu:", error);
-          message.error("Không thể tải dữ liệu");
-      } finally {
-          setLoading(false);
-      }
-    };
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const apiData = await employeeService.getAllEmployees();
+      const transformedData = apiData.map((item) => ({
+        employeeId: item.employeeId || "",
+        name: item.name || "",
+        department: {
+          departmentCode: item.department?.departmentCode || "",
+          departmentName: item.department?.departmentName || "",
+        },
+        position: {
+          positionCode: item.position?.positionCode || "",
+          positionName: item.position?.positionName || "",
+        },
+        status: item.department?.status || "inactive",
+      }));
+      setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error);
+      message.error("Không thể tải danh sách chức vụ");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-
-    const fetchEmployees = async () => {
-        try {
-          setLoading(true);
-          const apiData = await employeeService.getAllEmployees();
-          const transformedData = apiData.map((item) => ({
-            employeeId: item.employeeId || "",
-            name: item.name || "",
-            department: {
-              departmentCode: item.department?.departmentCode || "",
-              departmentName: item.department?.departmentName || "",
-            },
-            position: {
-              positionCode: item.position?.positionCode || "",
-              positionName: item.position?.positionName || "",
-            },
-            status: item.department?.status || "inactive",
-          }));
-          setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
-        } catch (error) {
-          console.error("Lỗi khi gọi API:", error);
-          message.error("Không thể tải danh sách nhân viên");
-        } finally {
-          setLoading(false);
-        }
-      };
-const fetchDepartmentPositions = async () => {
+  const fetchDepartmentPositions = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
@@ -122,16 +131,13 @@ const fetchDepartmentPositions = async () => {
     }
   };
 
-
-    useEffect(() => {
-     fetchPositions();
-     fetchEmployees();
-     fetchDepartmentPositions();
-    }, []);
-
+  useEffect(() => {
+    fetchPositions();
+    fetchEmployees();
+    fetchDepartmentPositions();
+  }, []);
 
   const handleAdd = () => {
-
     form.resetFields();
 
     setModalVisible(true);
@@ -144,13 +150,16 @@ const fetchDepartmentPositions = async () => {
       okText: "Xóa",
       okType: "danger",
       cancelText: "Hủy",
-      onOk: async () => { // Make onOk async
+      onOk: async () => {
+        // Make onOk async
         try {
           // Send DELETE request to the backend API
-          await axios.delete(`http://localhost:8386/management/positions/${id}`);
+          await axios.delete(
+            `http://localhost:8386/management/positions/${id}`
+          );
 
           // Update the positions state by filtering out the deleted position
-          setPositions(positions.filter(item => item.positionCode !== id));
+          setPositions(positions.filter((item) => item.positionCode !== id));
 
           // Show success message
           message.success("Đã xóa chức vụ");
@@ -163,16 +172,14 @@ const fetchDepartmentPositions = async () => {
     });
   };
 
-
   const handleSubmit = (values) => {
-      // Nếu thêm mới
-      const newPosition = {
-        id: positions.length + 1,
-        positionCode: values.positionCode,
-        positionName: values.positionName,
-         basicSalary: values.basicSalary,
-      };
-
+    // Nếu thêm mới
+    const newPosition = {
+      id: positions.length + 1,
+      positionCode: values.positionCode,
+      positionName: values.positionName,
+      basicSalary: values.basicSalary,
+    };
 
     const response = axios.post(
       "http://localhost:8386/management/positions/add",
@@ -181,9 +188,7 @@ const fetchDepartmentPositions = async () => {
     setPositions([...positions, newPosition]);
     message.success("Đã thêm chức vụ mới!");
     setModalVisible(false);
-
-  }
-
+  };
 
   const columns = [
     {
@@ -213,20 +218,22 @@ const fetchDepartmentPositions = async () => {
           (emp) => emp.position.positionCode === record?.positionCode
         );
 
-        const departmentCodes = departments.map((d) => d.department.departmentCode);
+        const departmentCodes = departments.map(
+          (d) => d.department.departmentCode
+        );
         return (
           <Space>
             <Tag color="blue" icon={<BankOutlined />}>
-            <a href="http://localhost:3000/department-positions">
-              {departmentCodes.length > 0 ? departmentCodes.join(" - ") : "Chưa có phòng ban"}
+              <a href="http://localhost:3000/department-positions">
+                {departmentCodes.length > 0
+                  ? departmentCodes.join(" - ")
+                  : "Chưa có phòng ban"}
               </a>
             </Tag>
           </Space>
-
         );
       },
     },
-
 
     {
       title: "Lương cơ bản",
@@ -236,13 +243,11 @@ const fetchDepartmentPositions = async () => {
       key: "basicSalary",
 
       render: (value) => (
-         <span className="text-green-600 font-medium">
-           { !isNaN(value) ? value.toLocaleString("vi-VN") + " VNĐ" : "0VNĐ"}
-         </span>
-       )
-
+        <span className="text-green-600 font-medium">
+          {!isNaN(value) ? value.toLocaleString("vi-VN") + " VNĐ" : "0VNĐ"}
+        </span>
+      ),
     },
-
 
     {
       title: "Số nhân viên",
@@ -282,7 +287,6 @@ const fetchDepartmentPositions = async () => {
       },
     },
 
-
     {
       title: "Thao tác",
 
@@ -290,7 +294,6 @@ const fetchDepartmentPositions = async () => {
 
       render: (_, record) => (
         <Space>
-
           <Tooltip title="Xóa">
             <Button
               type="text"
@@ -304,117 +307,148 @@ const fetchDepartmentPositions = async () => {
     },
   ];
 
-   return (
-          <div className="p-6">
-              <Card>
-                  <div className="flex justify-between items-center mb-6">
-                      <div>
-                          <h2 className="text-2xl font-bold mb-2">Quản Lý Chức Vụ</h2>
+  return (
+    <div className="p-6">
+      <Card>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Quản Lý Chức Vụ</h2>
 
-                          <p className="text-gray-500">
-                              Quản lý thông tin chức vụ trong công ty
-                          </p>
-                      </div>
-
-                      <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                          Thêm Chức Vụ
-                      </Button>
-                  </div>
-
-                  {/* Thống kê */}
-
-                  <Row gutter={16} className="mb-6">
-                      <Col span={8}>
-                          <Card bordered={false}>
-                              <Statistic
-                                  title="Tổng số chức vụ"
-                                  value={positions.length}
-                                  prefix={<TeamOutlined />}
-                              />
-                          </Card>
-                      </Col>
-                      <Col span={8}>
-                          <Card bordered={false}>
-                              <Statistic
-                                  title="Mức lương trung bình"
-                                  value={
-                                      positions.length > 0
-                                          ? (positions.reduce((acc, curr) => acc + (curr.basicSalary || 0), 0) / positions.length).toLocaleString("vi-VN")
-                                          : 0
-                                  }
-                                  prefix={<DollarOutlined />}
-                                  suffix="VNĐ"
-                              />
-                          </Card>
-                      </Col>
-                      <Col span={8}>
-                          <Card bordered={false}>
-                            <Statistic
-                              title="Tổng nhân viên"
-                              value={employees.length}
-                              prefix={<TeamOutlined />}
-                            />
-                          </Card>
-                        </Col>
-                  </Row>
-
-
-                  <Table
-                      columns={columns}
-                      dataSource={positions}
-                      loading={loading}
-                      rowKey="id"
-                  />
-
-                  <Modal
-                      title= "Thêm Chức Vụ Mới"
-                      visible={modalVisible}
-                      onCancel={() => setModalVisible(false)}
-                      footer={null}
-                  >
-                      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                          <Form.Item
-                              name="positionCode"
-                              label="Mã chức vụ"
-                              rules={[{ required: true, message: "Vui lòng nhập mã chức vụ" }]}
-                          >
-                              <Input />
-                          </Form.Item>
-
-                          <Form.Item
-                              name="positionName"
-                              label="Tên chức vụ"
-                              rules={[{ required: true, message: "Vui lòng nhập tên chức vụ" }]}
-                          >
-                              <Input />
-                          </Form.Item>
-                           <Form.Item
-                              name="basicSalary"
-                              label="Lương cơ bản"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "Vui lòng nhập số lương cơ bản của bạn",
-                                },
-                              ]}
-                           >
-                              <Input />
-                           </Form.Item>
-
-                          <Form.Item className="text-right">
-                              <Space>
-                                  <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-
-                                  <Button type="primary" htmlType="submit">
-                                      Thêm mới
-                                  </Button>
-                              </Space>
-                          </Form.Item>
-                      </Form>
-                  </Modal>
-              </Card>
+            <p className="text-gray-500">
+              Quản lý thông tin chức vụ trong công ty
+            </p>
           </div>
-      );
-  };
 
-  export default PositionList;
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Thêm Chức Vụ
+          </Button>
+        </div>
+        <div className="mb-6">
+          {/* Ô tìm kiếm */}
+          <Search
+            placeholder="Tìm kiếm chức vụ..."
+            allowClear
+            onSearch={(value) => setSearchText(value)} // Cập nhật giá trị tìm kiếm
+            onChange={(e) => setSearchText(e.target.value)} // Đảm bảo tìm kiếm theo từng ký tự
+            style={{ width: 300 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+        </div>
+
+        {/* Danh sách phòng ban dạng List */}
+        <List
+          dataSource={filteredPositions} // Hiển thị danh sách đã lọc
+          renderItem={(item) => (
+            <List.Item>
+              <div>
+                <strong>{item.positionName}</strong> - {item.positionCode}
+              </div>
+            </List.Item>
+          )}
+          locale={{
+            emptyText: "Không tìm thấy chức vụ phù hợp",
+          }}
+          style={{ marginBottom: "20px" }}
+        />
+
+        {/* Thống kê */}
+
+        <Row gutter={16} className="mb-6">
+          <Col span={8}>
+            <Card bordered={false}>
+              <Statistic
+                title="Tổng số chức vụ"
+                value={positions.length}
+                prefix={<TeamOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card bordered={false}>
+              <Statistic
+                title="Mức lương trung bình"
+                value={
+                  positions.length > 0
+                    ? (
+                        positions.reduce(
+                          (acc, curr) => acc + (curr.basicSalary || 0),
+                          0
+                        ) / positions.length
+                      ).toLocaleString("vi-VN")
+                    : 0
+                }
+                prefix={<DollarOutlined />}
+                suffix="VNĐ"
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card bordered={false}>
+              <Statistic
+                title="Tổng nhân viên"
+                value={employees.length}
+                prefix={<TeamOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        <Table
+          columns={columns}
+          dataSource={positions}
+          loading={loading}
+          rowKey="id"
+        />
+
+        <Modal
+          title="Thêm Chức Vụ Mới"
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+        >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item
+              name="positionCode"
+              label="Mã chức vụ"
+              rules={[{ required: true, message: "Vui lòng nhập mã chức vụ" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="positionName"
+              label="Tên chức vụ"
+              rules={[{ required: true, message: "Vui lòng nhập tên chức vụ" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="basicSalary"
+              label="Lương cơ bản"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng nhập số lương cơ bản của bạn",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item className="text-right">
+              <Space>
+                <Button onClick={() => setModalVisible(false)}>Hủy</Button>
+
+                <Button type="primary" htmlType="submit">
+                  Thêm mới
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Card>
+    </div>
+  );
+};
+
+export default PositionList;
