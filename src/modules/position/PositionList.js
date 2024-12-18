@@ -224,7 +224,7 @@ const PositionList = () => {
         return (
           <Space>
             <Tag color="blue" icon={<BankOutlined />}>
-              <a href="http://localhost:3000/department-positions">
+              <a href="/admin/department-positions">
                 {departmentCodes.length > 0
                   ? departmentCodes.join(" - ")
                   : "Chưa có phòng ban"}

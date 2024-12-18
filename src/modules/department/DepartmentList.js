@@ -176,7 +176,7 @@ const DepartmentList = () => {
             <BankOutlined className="text-blue-500" />
           </div>
           <div>
-            <a href="http://localhost:3000/department-positions">
+            <a href="/admin/department-positions">
               <div className="font-medium">{record.departmentName}</div>
               <div className="text-gray-500 text-sm">
                 Mã: {record.departmentCode}

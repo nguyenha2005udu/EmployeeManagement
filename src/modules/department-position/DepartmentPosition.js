@@ -17,6 +17,7 @@ import {
   Row,
   Col,
   Avatar,
+  List,
 } from "antd";
 import {
   PlusOutlined,
@@ -78,11 +79,7 @@ const DepartmentPositions = () => {
 
 
 
-  const filteredDepartments = departmentPositions.filter(
-    (dept) =>
-      dept.departmentName?.toLowerCase().includes(searchText.toLowerCase()) ||
-      dept.code?.toLowerCase().includes(searchText.toLowerCase())
-  );
+
     const handleAdd = () => {
 
         form.resetFields();
@@ -202,15 +199,7 @@ const handleDelete = (id) => {
           </Button>
         </div>
 
-        <div className="mb-6">
-          <Search
-            placeholder="Tìm kiếm phòng ban có vị trí ..."
-            allowClear
-            onSearch={(value) => setSearchText(value)}
-            style={{ width: 300 }}
-            prefix={<SearchOutlined className="text-gray-400" />}
-          />
-        </div>
+        
 
         <Table
            columns={columns}

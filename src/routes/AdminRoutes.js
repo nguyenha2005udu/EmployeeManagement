@@ -128,6 +128,7 @@ const AdminRoutes = () => {
           />
           {/* Quản lý lương */}
           <Route path="/admin/payroll" element={<PayrollList />} />
+          <Route path="/admin/department-positions" element={<DepartmentPositions />} />
           <Route path="/admin/overtime" element={<OvertimeList />} />
           <Route path="/admin/allowances" element={<AllowanceList />} />
           {/* Báo cáo */}
