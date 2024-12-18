@@ -322,13 +322,13 @@ const DepartmentList = () => {
         {/* Danh sách phòng ban dạng List */}
         <List
           dataSource={filteredDepartments} // Hiển thị danh sách đã lọc
-          renderItem={(item) => (
-            <List.Item>
-              <div>
-                <strong>{item.departmentName}</strong> - {item.departmentCode}
-              </div>
-            </List.Item>
-          )}
+          // renderItem={(item) => (
+          //   <List.Item>
+          //     <div>
+          //       <strong>{item.departmentName}</strong> - {item.departmentCode}
+          //     </div>
+          //   </List.Item>
+          // )}
           locale={{
             emptyText: "Không tìm thấy phòng ban phù hợp",
           }}
@@ -337,7 +337,7 @@ const DepartmentList = () => {
 
         <Table
           columns={columns}
-          dataSource={departments}
+          dataSource={filteredDepartments}
           loading={loading}
           rowKey="id"
           pagination={{

@@ -338,13 +338,13 @@ const PositionList = () => {
         {/* Danh sách phòng ban dạng List */}
         <List
           dataSource={filteredPositions} // Hiển thị danh sách đã lọc
-          renderItem={(item) => (
-            <List.Item>
-              <div>
-                <strong>{item.positionName}</strong> - {item.positionCode}
-              </div>
-            </List.Item>
-          )}
+          // renderItem={(item) => (
+          //   <List.Item>
+          //     <div>
+          //       <strong>{item.positionName}</strong> - {item.positionCode}
+          //     </div>
+          //   </List.Item>
+          // )}
           locale={{
             emptyText: "Không tìm thấy chức vụ phù hợp",
           }}
@@ -395,7 +395,7 @@ const PositionList = () => {
 
         <Table
           columns={columns}
-          dataSource={positions}
+          dataSource={filteredPositions}
           loading={loading}
           rowKey="id"
         />

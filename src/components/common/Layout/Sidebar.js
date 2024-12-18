@@ -55,7 +55,7 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
         },
         {
           key: "/leave-requests",
-          label: <Link to="/leave-requests">Đơn Xin Nghỉ Phép</Link>,
+          label: <Link to="/admin/leave-requests">Đơn Xin Nghỉ Phép</Link>,
         },
         {
           key: "/schedule",

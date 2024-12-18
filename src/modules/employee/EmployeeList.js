@@ -410,22 +410,13 @@ const EmployeeList = () => {
           {/* Danh sách nhân viên dạng List */}
           <List
             dataSource={filteredEmployees} // Hiển thị danh sách nhân viên đã lọc
-            renderItem={(item) => (
-              <List.Item>
-                <div>
-                  <strong>{item.name}</strong> - {item.employeeCode} -{" "}
-                  {item.position.positionName} {/* Sửa tại đây */}
-                </div>
-              </List.Item>
-            )}
+            
             locale={{
               emptyText: "Không tìm thấy nhân viên phù hợp",
             }}
             style={{ marginBottom: "20px" }}
           />
-          <Dropdown overlay={filterMenu} trigger={["click"]}>
-            <Button icon={<FilterOutlined />}>Bộ lọc</Button>
-          </Dropdown>
+          
 
           <Space>
             {selectedRows.length > 0 && (
