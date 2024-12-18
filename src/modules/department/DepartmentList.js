@@ -13,11 +13,12 @@ import {
   Tooltip,
   Dropdown,
   Menu,
+  Select,
   Statistic,
   Row,
   Col,
   Avatar,
-  List
+  List,
 } from "antd";
 import {
   PlusOutlined,
@@ -106,7 +107,7 @@ const DepartmentList = () => {
       setLoading(false);
     }
   };
-// Tìm kiếm phòng ban theo tên hoặc mã phòng ban
+  // Tìm kiếm phòng ban theo tên hoặc mã phòng ban
   const filteredDepartments = departments.filter(
     (department) =>
       department.departmentName
@@ -150,8 +151,12 @@ const DepartmentList = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:8386/management/departments/${id}`);
-          setDepartments(departments.filter((item) => item.departmentCode !== id));
+          await axios.delete(
+            `http://localhost:8386/management/departments/${id}`
+          );
+          setDepartments(
+            departments.filter((item) => item.departmentCode !== id)
+          );
           message.success("Đã xóa phòng ban");
         } catch (error) {
           message.error("Không thể xóa Phòng ban");
@@ -172,8 +177,10 @@ const DepartmentList = () => {
           </div>
           <div>
             <a href="http://localhost:3000/department-positions">
-            <div className="font-medium">{record.departmentName}</div>
-            <div className="text-gray-500 text-sm">Mã: {record.departmentCode}</div>
+              <div className="font-medium">{record.departmentName}</div>
+              <div className="text-gray-500 text-sm">
+                Mã: {record.departmentCode}
+              </div>
             </a>
           </div>
         </Space>
@@ -193,12 +200,13 @@ const DepartmentList = () => {
         return (
           <Space>
             <Avatar icon={<UserOutlined />} />
-            {departmentCodes.length > 0 ? departmentCodes.join(" - ") : "Chưa có phòng ban"}
+            {departmentCodes.length > 0
+              ? departmentCodes.join(" - ")
+              : "Chưa có phòng ban"}
           </Space>
         );
       },
     },
-
 
     {
       title: "Số nhân viên",
@@ -260,7 +268,9 @@ const DepartmentList = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold mb-2">Quản Lý Phòng Ban</h2>
-            <p className="text-gray-500">Quản lý thông tin các phòng ban trong công ty</p>
+            <p className="text-gray-500">
+              Quản lý thông tin các phòng ban trong công ty
+            </p>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Thêm Phòng Ban
@@ -309,7 +319,7 @@ const DepartmentList = () => {
             prefix={<SearchOutlined className="text-gray-400" />}
           />
         </div>
-         {/* Danh sách phòng ban dạng List */}
+        {/* Danh sách phòng ban dạng List */}
         <List
           dataSource={filteredDepartments} // Hiển thị danh sách đã lọc
           renderItem={(item) => (
@@ -349,45 +359,59 @@ const DepartmentList = () => {
             <Form.Item
               name="departmentCode"
               label="Mã phòng ban"
-              rules={[{ required: true, message: "Vui lòng nhập mã phòng ban gồm 3 kí tự" }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng nhập mã phòng ban gồm 3 kí tự",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
 
-              <Form.Item
-                  name="departmentName"
-                  label="Tên phòng ban"
-                  rules={[{ required: true, message: "Vui lòng nhập tên phòng ban" }]}
-              >
-                  <Input />
-              </Form.Item>
-              <Form.Item
-                name="foundingYear"
-                label="Năm thành lập"
-                rules={[{ required: true, message: "Vui lòng nhập năm thành lập phòng ban" }]}
+            <Form.Item
+              name="departmentName"
+              label="Tên phòng ban"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên phòng ban" },
+              ]}
             >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                  name="status"
-                  label="Trạng thái"
-                  rules={[{ required: true, message: "Vui lòng trạng thái của phòng ban (active/inactive)" }]}
-              >
-                  <Input />
-              </Form.Item>
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="foundingYear"
+              label="Năm thành lập"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng nhập năm thành lập phòng ban",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="status"
+              label="Trạng thái"
+              rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
+            >
+              <Select>
+                <Select.Option value="active">Đang hoạt động</Select.Option>
+                <Select.Option value="inactive">Không hoạt động</Select.Option>
+              </Select>
+            </Form.Item>
 
+            <Form.Item className="text-right">
+              <Space>
+                <Button onClick={() => setModalVisible(false)}>Hủy</Button>
 
-              <Form.Item className="text-right">
-                  <Space>
-                      <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-
-                      <Button type="primary" htmlType="submit">
-                          Thêm mới
-                      </Button>
-                  </Space>
-              </Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Thêm mới
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
-      </Modal>
+        </Modal>
       </Card>
     </div>
   );
