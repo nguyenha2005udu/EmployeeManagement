@@ -76,7 +76,7 @@ const DepartmentList = () => {
       setDepartments(transformedData);
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
-      message.error("Không thể tải danh sách nhân viên");
+      message.error("Không thể tải danh sách phòng ban");
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ const DepartmentList = () => {
       setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
-      message.error("Không thể tải danh sách nhân viên");
+      message.error("Không thể tải danh sách phòng ban");
     } finally {
       setLoading(false);
     }
@@ -144,7 +144,7 @@ const DepartmentList = () => {
 
   const handleDelete = (id) => {
     Modal.confirm({
-      title: "Bạn có chắc chắn muốn xóa Phòng ban này?",
+      title: "Bạn có chắc chắn muốn xóa phòng ban này?",
       content: "Hành động này không thể hoàn tác",
       okText: "Xóa",
       okType: "danger",
@@ -159,7 +159,7 @@ const DepartmentList = () => {
           );
           message.success("Đã xóa phòng ban");
         } catch (error) {
-          message.error("Không thể xóa Phòng ban");
+          message.error("Không thể xóa phòng ban");
           console.error("Error deleting department:", error);
         }
       },
@@ -267,13 +267,13 @@ const DepartmentList = () => {
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Phòng Ban</h2>
+            <h2 className="text-2xl font-bold mb-2">Quản lý phòng ban</h2>
             <p className="text-gray-500">
               Quản lý thông tin các phòng ban trong công ty
             </p>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm Phòng Ban
+            Thêm phòng ban
           </Button>
         </div>
 
@@ -350,7 +350,7 @@ const DepartmentList = () => {
         />
 
         <Modal
-          title="Thêm Phòng Ban Mới"
+          title="Thêm phòng ban mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}

@@ -135,13 +135,13 @@ const EmployeeList = () => {
       newEmployee
     );
     setEmployees([...employees, newEmployee]);
-    message.success("Đã thêm chức vụ mới!");
+    message.success("Đã thêm nhân viên mới!");
     setModalVisible(false);
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
-      title: "Bạn có chắc chắn muốn xóa Nhân viên này?",
+      title: "Bạn có chắc chắn muốn xóa nhân viên này?",
       content: "Hành động này không thể hoàn tác",
       okText: "Xóa",
       okType: "danger",
@@ -294,7 +294,7 @@ const EmployeeList = () => {
     },
 
     {
-      title: "Phòng Ban",
+      title: "Phòng ban",
 
       dataIndex: ["department", "departmentName"],
 
@@ -304,7 +304,7 @@ const EmployeeList = () => {
     },
 
     {
-      title: "Chức Vụ",
+      title: "Chức vụ",
 
       dataIndex: ["position", "positionName"],
 
@@ -328,7 +328,7 @@ const EmployeeList = () => {
     },
 
     {
-      title: "Thao Tác",
+      title: "Thao tác",
 
       key: "actions",
 
@@ -377,7 +377,7 @@ const EmployeeList = () => {
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Nhân Viên</h2>
+            <h2 className="text-2xl font-bold mb-2">Quản lý nhân viên</h2>
 
             <p className="text-gray-500">
               Quản lý thông tin và theo dõi nhân viên
@@ -390,7 +390,7 @@ const EmployeeList = () => {
             icon={<PlusOutlined />}
             size="large"
           >
-            Thêm Nhân Viên
+            Thêm nhân viên
           </Button>
         </div>
 
@@ -410,13 +410,11 @@ const EmployeeList = () => {
           {/* Danh sách nhân viên dạng List */}
           <List
             dataSource={filteredEmployees} // Hiển thị danh sách nhân viên đã lọc
-            
             locale={{
               emptyText: "Không tìm thấy nhân viên phù hợp",
             }}
             style={{ marginBottom: "20px" }}
           />
-          
 
           <Space>
             {selectedRows.length > 0 && (
@@ -441,7 +439,7 @@ const EmployeeList = () => {
           rowKey="id"
         />
         <Modal
-          title="Thêm Nhân Viên Mới"
+          title="Thêm nhân viên mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
@@ -459,16 +457,16 @@ const EmployeeList = () => {
               name="departmentCode"
               label="Mã phòng ban"
               rules={[
-                { required: true, message: "Vui lòng nhập Mã phòng ban" },
+                { required: true, message: "Vui lòng nhập mã phòng ban" },
               ]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               name="positionCode"
-              label="Mã Vị Trí công việc"
+              label="Mã vị trí công việc"
               rules={[
-                { required: true, message: "Vui lòng nhậpVị Trí công việc" },
+                { required: true, message: "Vui lòng nhập vị trí công việc" },
               ]}
             >
               <Input />

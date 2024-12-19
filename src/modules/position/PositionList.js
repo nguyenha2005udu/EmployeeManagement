@@ -312,7 +312,7 @@ const PositionList = () => {
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Chức Vụ</h2>
+            <h2 className="text-2xl font-bold mb-2">Quản lý chức vụ</h2>
 
             <p className="text-gray-500">
               Quản lý thông tin chức vụ trong công ty
@@ -320,7 +320,7 @@ const PositionList = () => {
           </div>
 
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm Chức Vụ
+            Thêm chức vụ
           </Button>
         </div>
         <div className="mb-6">
@@ -401,7 +401,7 @@ const PositionList = () => {
         />
 
         <Modal
-          title="Thêm Chức Vụ Mới"
+          title="Thêm chức vụ mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}

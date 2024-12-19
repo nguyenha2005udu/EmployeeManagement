@@ -1,5 +1,13 @@
-
-import { Card, Row, Col, Statistic, Progress, Table, Button,message  } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Progress,
+  Table,
+  Button,
+  message,
+} from "antd";
 import {
   UserOutlined,
   BankOutlined,
@@ -10,7 +18,7 @@ import {
 import moment from "moment";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import {Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 const DashboardEmployees = () => {
@@ -28,39 +36,36 @@ const DashboardEmployees = () => {
   const [selectedDate, setSelectedDate] = useState(moment());
   const [loading, setLoading] = useState(false);
 
-
   const fetchEmployees = async () => {
     try {
       setLoading(true);
       const { data: employee } = await axios.get(
-            `http://localhost:8386/management/employees/${employeeId}`
-          );
+        `http://localhost:8386/management/employees/${employeeId}`
+      );
 
       const transformedData = {
-              employeeId: employee.employeeId || "",
-              name: employee.name || "",
-              department: {
-                departmentCode: employee.department?.departmentCode || "",
-                departmentName: employee.department?.departmentName || "",
-              },
-              position: {
-                positionCode: employee.position?.positionCode || "",
-                positionName: employee.position?.positionName || "",
-                basicSalary: employee.position?.basicSalary || "",
-              },
-
-            };
+        employeeId: employee.employeeId || "",
+        name: employee.name || "",
+        department: {
+          departmentCode: employee.department?.departmentCode || "",
+          departmentName: employee.department?.departmentName || "",
+        },
+        position: {
+          positionCode: employee.position?.positionCode || "",
+          positionName: employee.position?.positionName || "",
+          basicSalary: employee.position?.basicSalary || "",
+        },
+      };
 
       setEmployees(transformedData); // Lưu dữ liệu đã chuyển đổi vào trạng thái
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
-      message.error("Không thể tải danh sách nhân viên");
+      message.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
   };
-useEffect(() => {
-
+  useEffect(() => {
     fetchEmployees();
   }, []);
 
@@ -101,7 +106,9 @@ useEffect(() => {
           const timePart = curr.checkInTime.split("T")[1];
           if (
             timePart &&
-            moment(timePart, "HH:mm:ss").isBefore(moment("10:02:00", "HH:mm:ss"))
+            moment(timePart, "HH:mm:ss").isBefore(
+              moment("10:02:00", "HH:mm:ss")
+            )
           ) {
             acc.present++;
           } else {
@@ -116,7 +123,6 @@ useEffect(() => {
       { present: 0, late: 0, absent: 0, onLeave: 0 }
     );
   };
-
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -151,19 +157,24 @@ useEffect(() => {
         );
         return `${duration.hours()}h ${duration.minutes()}m`;
       },
-      },
+    },
   ];
 
   return (
-    
     <div style={{ padding: "32px", position: "relative", zIndex: 1 }}>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <h2 className="text-2xl font-bold mb-8">Bảng Điều Khiển</h2>
-      <Button type="primary" danger onClick={handleLogout}>
-        Đăng Xuất
-      </Button>
-    </div>
-      
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 className="text-2xl font-bold mb-8">Bảng điều khiển</h2>
+        <Button type="primary" danger onClick={handleLogout}>
+          Đăng xuất
+        </Button>
+      </div>
+
       {/* Thống kê chính */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col span={6}>
@@ -205,15 +216,14 @@ useEffect(() => {
         </Col>
       </Row>
 
-
       {/* Thống kê chấm công hôm nay */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col span={24}>
-          <Card title="Thống Kê Chấm Công" hoverable className="h-full">
+          <Card title="Thống kê chấm công" hoverable className="h-full">
             <Row gutter={[32, 16]}>
               <Col span={8}>
                 <Statistic
-                  title="Đúng Giờ"
+                  title="Đúng giờ"
                   value={statistics.present}
                   valueStyle={{ color: "#3f8600", marginBottom: "16px" }}
                 />
@@ -221,18 +231,16 @@ useEffect(() => {
               </Col>
               <Col span={8}>
                 <Statistic
-                  title="Đi Muộn"
+                  title="Đi muộn"
                   value={statistics.late}
-
                   valueStyle={{ color: "#faad14" }}
                 />
                 <Progress percent={15} status="warning" />
               </Col>
               <Col span={8}>
                 <Statistic
-                  title="Vắng Mặt"
-                  value={ 26 - statistics.late - statistics.present}
-
+                  title="Vắng mặt"
+                  value={26 - statistics.late - statistics.present}
                   valueStyle={{ color: "#cf1322" }}
                 />
                 <Progress percent={5} status="exception" />
@@ -244,15 +252,14 @@ useEffect(() => {
 
       {/* Thống kê chi tiết */}
       <Row gutter={[24, 24]} className="mb-8">
-
         <Col span={24}>
           <Card
             title="Thời gian chấm công"
             hoverable
             className="h-full"
             extra={
-                <Link to={`/user/${employeeId}/payroll`}>Xem Bảng Lương</Link>
-              }
+              <Link to={`/user/${employeeId}/payroll`}>Xem bảng lương</Link>
+            }
           >
             <Table
               dataSource={timesheets}
@@ -264,8 +271,6 @@ useEffect(() => {
           </Card>
         </Col>
       </Row>
-
-
     </div>
   );
 };

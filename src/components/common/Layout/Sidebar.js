@@ -23,103 +23,103 @@ const Sidebar = ({ collapsed, isMobile, onCollapse }) => {
     {
       key: "/",
       icon: <DashboardOutlined />,
-      label: <Link to="/admin">Bảng Điều Khiển</Link>,
+      label: <Link to="/admin">Bảng điều khiển</Link>,
     },
     {
       key: "employee",
       icon: <TeamOutlined />,
-      label: "Quản Lý Nhân Sự",
+      label: "Quản lý nhân sự",
       children: [
         {
           key: "/employees",
-          label: <Link to="/admin/employees">Danh Sách Nhân Viên</Link>,
+          label: <Link to="/admin/employees">Danh sách nhân viên</Link>,
         },
         {
           key: "/positions",
-          label: <Link to="/admin/positions">Chức Vụ</Link>,
+          label: <Link to="/admin/positions">Chức vụ</Link>,
         },
         {
           key: "/departments",
-          label: <Link to="/admin/departments">Phòng Ban</Link>,
+          label: <Link to="/admin/departments">Phòng ban</Link>,
         },
       ],
     },
     {
       key: "attendance",
       icon: <ClockCircleOutlined />,
-      label: "Chấm Công & Nghỉ Phép",
+      label: "Chấm công & Nghỉ phép",
       children: [
         {
           key: "/timekeeping",
-          label: <Link to="/admin/timekeeping">Chấm Công</Link>,
+          label: <Link to="/admin/timekeeping">Chấm công</Link>,
         },
         {
           key: "/leave-requests",
-          label: <Link to="/admin/leave-requests">Đơn Xin Nghỉ Phép</Link>,
+          label: <Link to="/admin/leave-requests">Đơn xin nghỉ phép</Link>,
         },
         {
           key: "/schedule",
-          label: <Link to="/admin/schedule">Lịch Làm Việc</Link>,
+          label: <Link to="/admin/schedule">Lịch làm việc</Link>,
         },
       ],
     },
     {
       key: "payroll",
       icon: <DollarOutlined />,
-      label: "Quản Lý Lương",
+      label: "Quản lý lương",
       children: [
         {
           key: "/payroll",
-          label: <Link to="/admin/payroll">Bảng Lương</Link>,
+          label: <Link to="/admin/payroll">Bảng lương</Link>,
         },
         {
           key: "/overtime",
-          label: <Link to="/admin/overtime">Quản Lý Tăng Ca</Link>,
+          label: <Link to="/admin/overtime">Quản lý tăng ca</Link>,
         },
         {
           key: "/allowances",
-          label: <Link to="/admin/allowances">Phụ Cấp & Thưởng</Link>,
+          label: <Link to="/admin/allowances">Phụ cấp & Thưởng</Link>,
         },
       ],
     },
     {
       key: "reports",
       icon: <BarChartOutlined />,
-      label: "Báo Cáo & Thống Kê",
+      label: "Báo cáo & Thống kê",
       children: [
         {
           key: "/reports/attendance",
-          label: <Link to="/admin/reports/attendance">Báo Cáo Chấm Công</Link>,
+          label: <Link to="/admin/reports/attendance">Báo cáo chấm công</Link>,
         },
         {
           key: "/reports/payroll",
-          label: <Link to="/admin/reports/payroll">Báo Cáo Lương</Link>,
+          label: <Link to="/admin/reports/payroll">Báo cáo lương</Link>,
         },
         {
           key: "/reports/performance",
-          label: <Link to="/admin/reports/performance">Đánh Giá Nhân Viên</Link>,
+          label: <Link to="/admin/reports/performance">Đánh giá nhân viên</Link>,
         },
       ],
     },
     {
       key: "settings",
       icon: <SettingOutlined />,
-      label: "Cài Đặt Hệ Thống",
+      label: "Cài đặt hệ thống",
       children: [
         {
           key: "/settings/users",
-          label: <Link to="/admin/settings/users">Quản Lý Người Dùng</Link>,
+          label: <Link to="/admin/settings/users">Quản lý người dùng</Link>,
         },
         {
           key: "/settings/roles",
-          label: <Link to="/admin/settings/roles">Phân Quyền</Link>,
+          label: <Link to="/admin/settings/roles">Phân quyền</Link>,
         },
       ],
     },
     {
       key: "inbox",
       icon: <MessageOutlined />,
-      label: "Tin Nhắn & Thông Báo",
+      label: "Tin nhắn & Thông báo",
       children: [
         {
           key: "/inbox",

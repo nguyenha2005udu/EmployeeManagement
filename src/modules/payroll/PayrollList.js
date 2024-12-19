@@ -36,68 +36,66 @@ const PayrollList = () => {
   const [calculateModalVisible, setCalculateModalVisible] = useState(false);
   const [dataSource, setDataSource] = useState([]);
 
-
-const fetchTimesheets = async (month, year) => {
-  try {
-    setLoading(true);
+  const fetchTimesheets = async (month, year) => {
+    try {
+      setLoading(true);
       const apiData = await employeeService.getAllEmployees();
-    if (!Array.isArray(apiData)) {
-      throw new Error("Dữ liệu trả về không hợp lệ.");
-    }
-
-    // Data transformation
-    const transformedData = await Promise.all(
-      apiData.map(async (item) => {
-        const employeeId = item?.employeeId || "N/A";
-        const totalHours = await axios.get(
-          `http://localhost:8386/management/attendances/total-hours/${employeeId}/${month}/${year}`
-        );
-        const workingDays = await axios.get(
-                  `http://localhost:8386/management/attendances/employee/${employeeId}/${month}/${year}`
-                );
-        return {
-          employeeId,
-          fullName: item?.name || "Không rõ",
-          department: item?.department?.departmentName || "Không rõ",
-          workingDays: workingDays.data.length || 0,
-          standardDays: item?.standardDays || 22,
-          basicSalary: item?.position?.basicSalary || 0,
-          allowance: item?.allowance || 0,
-          totalHours: totalHours.data || 0,
-          overtimePay: item?.overtimePay || 0,
-          totalSalary: item?.totalSalary || 0,
-        };
-      })
-    );
-
-    // Tính lương
-    const processTotalSalaries = (employeeData) => {
-      const { totalHours, basicSalary } = employeeData;
-      let totalSalary = basicSalary;
-      let overtimePay = 0;
-
-      if (totalHours > 40) {
-        overtimePay = 1.5 * (totalHours - 40) * (basicSalary / 40);
-        totalSalary += overtimePay; // Adding overtime to the basic salary
+      if (!Array.isArray(apiData)) {
+        throw new Error("Dữ liệu trả về không hợp lệ.");
       }
 
-      return { totalSalary, overtimePay };
-    };
-    const enrichedData = transformedData.map((item) => ({
-      ...item,
-      ...processTotalSalaries(item),
-    }));
-    setDataSource(enrichedData);
-  } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error.message);
-    message.error("Không thể tải danh sách chấm công: " + error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      // Data transformation
+      const transformedData = await Promise.all(
+        apiData.map(async (item) => {
+          const employeeId = item?.employeeId || "N/A";
+          const totalHours = await axios.get(
+            `http://localhost:8386/management/attendances/total-hours/${employeeId}/${month}/${year}`
+          );
+          const workingDays = await axios.get(
+            `http://localhost:8386/management/attendances/employee/${employeeId}/${month}/${year}`
+          );
+          return {
+            employeeId,
+            fullName: item?.name || "Không rõ",
+            department: item?.department?.departmentName || "Không rõ",
+            workingDays: workingDays.data.length || 0,
+            standardDays: item?.standardDays || 22,
+            basicSalary: item?.position?.basicSalary || 0,
+            allowance: item?.allowance || 0,
+            totalHours: totalHours.data || 0,
+            overtimePay: item?.overtimePay || 0,
+            totalSalary: item?.totalSalary || 0,
+          };
+        })
+      );
 
+      // Tính lương
+      const processTotalSalaries = (employeeData) => {
+        const { totalHours, basicSalary } = employeeData;
+        let totalSalary = basicSalary;
+        let overtimePay = 0;
 
-// Xử lý khi chọn tháng
+        if (totalHours > 40) {
+          overtimePay = 1.5 * (totalHours - 40) * (basicSalary / 40);
+          totalSalary += overtimePay; // Adding overtime to the basic salary
+        }
+
+        return { totalSalary, overtimePay };
+      };
+      const enrichedData = transformedData.map((item) => ({
+        ...item,
+        ...processTotalSalaries(item),
+      }));
+      setDataSource(enrichedData);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error.message);
+      message.error("Không thể tải danh sách chấm công: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý khi chọn tháng
   const handleMonthChange = (date) => {
     if (date) {
       const selectedMonth = date.month() + 1; // Tháng bắt đầu từ 0 nên cần +1
@@ -110,14 +108,12 @@ const fetchTimesheets = async (month, year) => {
     }
   };
 
-
   useEffect(() => {
     if (!selectedMonth) {
       const currentDate = new Date();
       fetchTimesheets(currentDate.getMonth() + 1, currentDate.getFullYear());
     }
   }, [selectedMonth]);
-
 
   const columns = [
     {
@@ -136,7 +132,7 @@ const fetchTimesheets = async (month, year) => {
       ),
     },
     {
-      title: "Phòng Ban",
+      title: "Phòng ban",
       dataIndex: "department",
       key: "department",
       render: (text) => (
@@ -146,7 +142,7 @@ const fetchTimesheets = async (month, year) => {
       ),
     },
     {
-      title: "Ngày Công",
+      title: "Ngày công",
       children: [
         {
           title: "Thực tế",
@@ -161,7 +157,7 @@ const fetchTimesheets = async (month, year) => {
       ],
     },
     {
-      title: "Lương & Phụ Cấp",
+      title: "Lương & Phụ cấp",
       children: [
         {
           title: "Lương cơ bản",
@@ -210,7 +206,7 @@ const fetchTimesheets = async (month, year) => {
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Lương</h2>
+            <h2 className="text-2xl font-bold mb-2">Quản lý lương</h2>
             <p className="text-gray-500">
               Quản lý và tính toán lương nhân viên.
             </p>
@@ -222,7 +218,7 @@ const fetchTimesheets = async (month, year) => {
               icon={<CalculatorOutlined />}
               onClick={() => setCalculateModalVisible(true)}
             >
-              Tính Lương
+              Tính lương
             </Button>
           </Space>
         </div>
@@ -319,7 +315,7 @@ const fetchTimesheets = async (month, year) => {
         />
 
         <Modal
-          title="Tính Lương Tháng"
+          title="Tính lương tháng"
           visible={calculateModalVisible}
           onCancel={() => setCalculateModalVisible(false)}
           footer={[
@@ -327,7 +323,7 @@ const fetchTimesheets = async (month, year) => {
               Hủy
             </Button>,
             <Button key="submit" type="primary" loading={loading}>
-              Tính Lương
+              Tính lương
             </Button>,
           ]}
         >

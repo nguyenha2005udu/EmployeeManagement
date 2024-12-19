@@ -144,7 +144,7 @@ const PayrollEmployee = () => {
       ),
     },
     {
-      title: "Phòng Ban",
+      title: "Phòng ban",
       dataIndex: "department",
       key: "department",
       render: (text) => (
@@ -154,7 +154,7 @@ const PayrollEmployee = () => {
       ),
     },
     {
-      title: "Ngày Công",
+      title: "Ngày công",
       children: [
         {
           title: "Thực tế",
@@ -169,7 +169,7 @@ const PayrollEmployee = () => {
       ],
     },
     {
-      title: "Lương & Phụ Cấp",
+      title: "Lương & Phụ cấp",
       children: [
         {
           title: "Lương cơ bản",
@@ -202,7 +202,7 @@ const PayrollEmployee = () => {
       ],
     },
     {
-      title: "Thực Lãnh",
+      title: "Thực lãnh",
       dataIndex: "totalSalary",
       key: "totalSalary",
       render: (value) => (
@@ -218,7 +218,7 @@ const PayrollEmployee = () => {
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Quản Lý Lương</h2>
+            <h2 className="text-2xl font-bold mb-2">Quản lý lương</h2>
             <p className="text-gray-500">
               Quản lý và tính toán lương nhân viên.
             </p>
@@ -230,7 +230,7 @@ const PayrollEmployee = () => {
               icon={<CalculatorOutlined />}
               onClick={() => setCalculateModalVisible(true)}
             >
-              Tính Lương
+              Tính lương
             </Button>
           </Space>
         </div>
@@ -274,7 +274,7 @@ const PayrollEmployee = () => {
         />
 
         <Modal
-          title="Tính Lương Tháng"
+          title="Tính lương tháng"
           visible={calculateModalVisible}
           onCancel={() => setCalculateModalVisible(false)}
           footer={[
@@ -282,7 +282,7 @@ const PayrollEmployee = () => {
               Hủy
             </Button>,
             <Button key="submit" type="primary" loading={loading}>
-              Tính Lương
+              Tính lương
             </Button>,
           ]}
         >
