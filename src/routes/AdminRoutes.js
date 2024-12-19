@@ -73,7 +73,7 @@ const AdminRoutes = () => {
             element={<EmployeeList service={employeeService} />}
           />
           <Route
-            path="/admin/employees/:id"
+            path="/admin/employees/:employeeId"
             element={<EmployeeDetail service={employeeService} />}
           />
           <Route

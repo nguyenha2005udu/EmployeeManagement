@@ -218,19 +218,20 @@ const PositionList = () => {
           (emp) => emp.position.positionCode === record?.positionCode
         );
 
-        const departmentCodes = departments.map(
-          (d) => d.department.departmentCode
-        );
+        
         return (
           <Space>
-            <Tag color="blue" icon={<BankOutlined />}>
-              <a href="/admin/department-positions">
-                {departmentCodes.length > 0
-                  ? departmentCodes.join(" - ")
-                  : "Chưa có phòng ban"}
-              </a>
-            </Tag>
+            {departments && departments.length > 0 ? (
+              departments.map((d) => (
+                <Tag key={d.department.departmentCode} color="blue" icon={<BankOutlined />}>
+                  {d.department.departmentCode}
+                </Tag>
+              ))
+            ) : (
+              <span>Chưa có phòng ban</span>
+            )}
           </Space>
+
         );
       },
     },

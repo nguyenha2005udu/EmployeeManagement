@@ -17,6 +17,7 @@ import {
   Modal,
   List,
   Drawer,
+  DatePicker,
 } from "antd";
 import {
   PlusOutlined,
@@ -30,11 +31,15 @@ import {
   TeamOutlined,
   SearchOutlined,
   ExclamationCircleOutlined,
+  
 } from "@ant-design/icons";
 import { employeeService } from "../../services/employeeService";
-
+import { departmentService } from "../../services/departmentService";
+import { positionService } from "../../services/positionService";
+import { useNavigate } from "react-router-dom";
 const { Search } = Input;
 const { TabPane } = Tabs;
+import moment from "moment";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -48,6 +53,10 @@ const getStatusColor = (status) => {
 };
 
 const EmployeeList = () => {
+  const [departments, setDepartments] = useState([]); // Trạng thái để lưu danh sách phòng ban
+  const [positions, setPositions] = useState([]); // Trạng thái để lưu danh sách chức vụ
+
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -101,14 +110,35 @@ const EmployeeList = () => {
         ?.toLowerCase()
         .includes(searchText.toLowerCase()) // Lọc theo tên chức vụ
   );
+  // Gọi API để lấy danh sách phòng ban
+  const fetchDepartments = async () => {
+    try {
+      const response = await departmentService.getAllDepartments();
+      setDepartments(response); // Giả sử response.data là mảng các phòng ban
+    } catch (error) {
+      console.error("Không thể tải danh sách phòng ban", error);
+    }
+  };
+
+  // Gọi API để lấy danh sách chức vụ
+  const fetchPositions = async () => {
+    try {
+      const response = await positionService.getAllPositions();
+      setPositions(response); // Giả sử response.data là mảng các chức vụ
+    } catch (error) {
+      console.error("Không thể tải danh sách chức vụ", error);
+    }
+  };
 
   useEffect(() => {
     fetchEmployees();
+    fetchDepartments();
+    fetchPositions();
   }, []);
 
-  // const handleSearch = (value) => {
-  //   setSearchText(value);
-  // };
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
 
   const handleEdit = (employee) => {
     setCurrentEmployee(employee);
@@ -120,23 +150,37 @@ const EmployeeList = () => {
     setModalVisible(true);
   };
 
-  const handleSubmit = (values) => {
-    const newEmployee = {
+  const handleSubmit = async (values) => {
+    const employeeData = {
       name: values.name,
+      dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
+      address: values.address,
+      dateOfJoining: values.dateOfJoining.format("YYYY-MM-DD"),
       department: {
-        departmentCode: values.departmentCode,
+        departmentCode: values.departmentCode, // Sử dụng mã phòng ban
       },
       position: {
-        positionCode: values.positionCode,
+        positionCode: values.positionCode, // Sử dụng mã vị trí
       },
+      email: values.email,
     };
-    const response = axios.post(
-      "http://localhost:8386/management/employees/add",
-      newEmployee
-    );
-    setEmployees([...employees, newEmployee]);
-    message.success("Đã thêm nhân viên mới!");
-    setModalVisible(false);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8386/management/employees/add",
+        employeeData
+      );
+      setEmployees([...employees, employeeData]);
+      console.log("Thêm nhân viên thành công:", response.data);
+      message.success("Đã thêm nhân viên mới!");
+      setModalVisible(false);
+      // Reset form hoặc thực hiện các hành động khác
+    } catch (error) {
+      console.error(
+        "Lỗi khi thêm nhân viên:",
+        error.response ? error.response.data : error.message
+      );
+    }
   };
 
   const handleDelete = (id) => {
@@ -166,6 +210,30 @@ const EmployeeList = () => {
       },
     });
   };
+  const handleEditSubmit = async (values) => {
+    // Chuyển đổi dữ liệu thành định dạng JSON mong muốn
+    const formattedData = {
+      name: values.name,
+      dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"), // Định dạng ngày sinh
+      address: values.address,
+      dateOfJoining: values.dateOfJoining.format("YYYY-MM-DD"), // Định dạng ngày vào làm
+      email: values.email,
+    };
+
+    // Gửi dữ liệu đã định dạng đến API
+    try {
+      await employeeService.updateEmployee(
+        currentEmployee.employeeId,
+        formattedData
+      );
+      message.success("Cập nhật thông tin nhân viên thành công");
+      fetchEmployees(); // Refresh the employee list
+      setDrawerVisible(false); // Close the modal
+    } catch (error) {
+      message.error("Cập nhật thông tin nhân viên thất bại");
+    }
+  };
+
 
   const handleBulkAction = (action) => {
     confirm({
@@ -228,6 +296,7 @@ const EmployeeList = () => {
       const response = await axios.get(
         `http://localhost:8386/management/employees/${employeeId}`
       );
+      navigate(`/admin/employees/${employeeId}`);
       console.log(response.data);
       setDrawerVisible(true);
       setCurrentEmployee(response.data); // Set the employee data in the drawer for display
@@ -322,7 +391,7 @@ const EmployeeList = () => {
 
       render: (status) => (
         <Tag color={getStatusColor(status)}>
-          {status === "active" ? "Đang làm việc" : "Đã nghỉ việc"}
+          {status === "true" ? "Đang làm việc" : "Đã nghỉ việc"}
         </Tag>
       ),
     },
@@ -439,7 +508,7 @@ const EmployeeList = () => {
           rowKey="id"
         />
         <Modal
-          title="Thêm nhân viên mới"
+          title="Thêm Nhân Viên Mới"
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
@@ -447,44 +516,89 @@ const EmployeeList = () => {
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <Form.Item
               name="name"
-              label="Họ và tên"
-              rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
+              label="Tên Nhân Viên"
+              rules={[{ required: true, message: "Hãy nhập tên nhân viên" }]}
             >
-              <Input />
+              <Input placeholder="Nhập tên nhân viên" />
             </Form.Item>
-
+            <Form.Item
+              name="dateOfBirth"
+              label="Ngày sinh"
+              rules={[{ required: true, message: "Hãy chọn ngày sinh" }]}
+            >
+              <DatePicker format="YYYY-MM-DD" placeholder="Chọn ngày sinh" />
+            </Form.Item>
+    
+            <Form.Item
+              name="address"
+              label="Địa chỉ"
+              rules={[{ required: true, message: "Hãy nhập địa chỉ" }]}
+            >
+              <Input placeholder="Nhập địa chỉ" />
+            </Form.Item>
+          
+            <Form.Item
+              name="dateOfJoining"
+              label="Ngày vào làm"
+              rules={[{ required: true, message: "Hãy chọn ngày vào làm" }]}
+            >
+              <DatePicker format="YYYY-MM-DD" placeholder="Chọn ngày vào làm" />
+            </Form.Item>
+            
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: "Hãy nhập email" },
+                { type: "email", message: "Email không hợp lệ" },
+              ]}
+            >
+              <Input placeholder="Nhập email" />
+            </Form.Item>
             <Form.Item
               name="departmentCode"
               label="Mã phòng ban"
-              rules={[
-                { required: true, message: "Vui lòng nhập mã phòng ban" },
-              ]}
+              rules={[{ required: true, message: "Hãy chọn mã phòng ban" }]}
             >
-              <Input />
+              <Select placeholder="Chọn mã phòng ban">
+                {departments.map((department) => (
+                  <Select.Option
+                    key={department.departmentCode}
+                    value={department.departmentCode}
+                  >
+                    {department.departmentCode} - {department.departmentName}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item
               name="positionCode"
-              label="Mã vị trí công việc"
-              rules={[
-                { required: true, message: "Vui lòng nhập vị trí công việc" },
-              ]}
+              label="Mã chức vụ"
+              rules={[{ required: true, message: "Hãy chọn mã chức vụ" }]}
             >
-              <Input />
+              <Select placeholder="Chọn mã chức vụ">
+                {positions.map((position) => (
+                  <Select.Option
+                    key={position.positionCode}
+                    value={position.positionCode}
+                  >
+                    {position.positionCode} - {position.positionName}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
-
-            <Form.Item className="text-right">
-              <Space>
-                <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-
-                <Button type="primary" htmlType="submit">
-                  Thêm mới
-                </Button>
-              </Space>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Thêm nhân viên
+              </Button>
             </Form.Item>
           </Form>
         </Modal>
 
         <Drawer
+          title={
+            currentEmployee ? "Sửa Thông Tin Nhân Viên" : "Chi Tiết Nhân Viên"
+          }
           width={640}
           placement="right"
           closable={false}
@@ -492,17 +606,62 @@ const EmployeeList = () => {
           visible={drawerVisible}
         >
           {currentEmployee && (
-            <Tabs defaultActiveKey="1">
-              <TabPane tab="Thông tin cơ bản" key="1">
-                {/* Basic info content */}
-              </TabPane>
-              <TabPane tab="Chấm công" key="2">
-                {/* Timesheet content */}
-              </TabPane>
-              <TabPane tab="Lương" key="3">
-                {/* Salary content */}
-              </TabPane>
-            </Tabs>
+            <Form form={form} layout="vertical" onFinish={handleEditSubmit}>
+              <Form.Item
+                name="name"
+                label="Tên Nhân Viên"
+                initialValue={currentEmployee.name}
+                rules={[{ required: true, message: "Hãy nhập tên nhân viên" }]}
+              >
+                <Input placeholder="Nhập tên nhân viên" />
+              </Form.Item>
+              <Form.Item
+                name="dateOfBirth"
+                label="Ngày sinh"
+                initialValue={moment(currentEmployee.dateOfBirth)} // Assuming dob is in a format compatible with moment
+                rules={[{ required: true, message: "Hãy chọn ngày sinh" }]}
+              >
+                <DatePicker format="YYYY-MM-DD" placeholder="Chọn ngày sinh" />
+              </Form.Item>
+              
+              <Form.Item
+                name="address"
+                label="Địa chỉ"
+                initialValue={currentEmployee.address}
+                rules={[{ required: true, message: "Hãy nhập địa chỉ" }]}
+              >
+                <Input placeholder="Nhập địa chỉ" />
+              </Form.Item>
+        
+              <Form.Item
+                name="dateOfJoining"
+                label="Ngày vào làm"
+                initialValue={moment(currentEmployee.dateOfJoining)} // Assuming hire_date is in a format compatible with moment
+                rules={[{ required: true, message: "Hãy chọn ngày vào làm" }]}
+              >
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  placeholder="Chọn ngày vào làm"
+                />
+              </Form.Item>
+              
+              <Form.Item
+                name="email"
+                label="Email"
+                initialValue={currentEmployee.email}
+                rules={[
+                  { required: true, message: "Hãy nhập email" },
+                  { type: "email", message: "Email không hợp lệ" },
+                ]}
+              >
+                <Input placeholder="Nhập email" />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Cập nhật nhân viên
+                </Button>
+              </Form.Item>
+            </Form>
           )}
         </Drawer>
       </Card>

@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   Tag,
+  Popover ,
   Calendar,
   Badge,
   Modal,
@@ -46,6 +47,18 @@ const TimesheetList = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [employees, setEmployees] = useState([]);
+    const [employeeAttendances, setEmployeeAttendances] = useState([]);
+    const [employeeOnTime, setEmployeeOnTime] = useState([]);
+    const [employeeLates, setEmployeeLates] = useState([]);
+
+    const [showMoreOnTime, setShowMoreOnTime] = useState(false);
+  const [showMoreLates, setShowMoreLates] = useState(false);
+  const [showMoreAbsent, setShowMoreAbsent] = useState(false);
+
+  const handleShowMoreOnTime = () => setShowMoreOnTime(true);
+  const handleShowMoreLates = () => setShowMoreLates(true);
+  const handleShowMoreAbsent = () => setShowMoreAbsent(true);
+
 
     const [statistics, setStatistics] = useState({
         present: 0,
@@ -149,27 +162,45 @@ const handleSubmit = async (values) => {
 };
 
 
-  const calculateStatistics = (timesheets) => {
-    return timesheets.reduce(
-      (acc, curr) => {
-        if (!curr.checkInTime) {
-          acc.absent++;
-        } else {
-          const timePart = curr.checkInTime.split("T")[1];
-          if (timePart && moment(timePart, "HH:mm:ss").isBefore(moment("10:02:00", "HH:mm:ss"))) {
-            acc.present++;
-          } else {
-            acc.late++;
-          }
-        }
-        if (curr.onLeave) {
-          acc.onLeave++;
-        }
-        return acc;
-      },
-      { present: 0, late: 0, absent: 0, onLeave: 0 }
-    );
+const calculateStatistics = (timesheets) => {
+  const lates = [];
+  const absents = [];
+  const onTimes = [];
+
+  timesheets.forEach((curr) => {
+    if (!curr.checkInTime) {
+      absents.push(curr.employee);
+    } else {
+      const timePart = curr.checkInTime.split("T")[1];
+      if (timePart && moment(timePart, "HH:mm:ss").isAfter(moment("10:02:00", "HH:mm:ss"))) {
+        lates.push(curr.employee);
+      }else{
+        onTimes.push(curr.employee);
+      }
+    }
+  });
+
+  setEmployeeLates(lates);
+  setEmployeeAttendances(absents);
+  setEmployeeOnTime(onTimes);
+
+  return {
+    present: onTimes.length,
+    late: lates.length,
+    absent: absents.length,
+    
+    onLeave: timesheets.filter((t) => t.onLeave).length,
   };
+};
+
+useEffect(() => {
+  setEmployeeAttendances(
+    employees.filter(
+      (employee) =>
+        !timesheets.some((t) => t.employee.employeeId === employee.employeeId)
+    )
+  );
+}, [employees, timesheets]);
 
 
   const handleCheckIn = async (id) => {
@@ -226,8 +257,7 @@ const handleSubmit = async (values) => {
       message.error("Không thể check-out");
     }
   };
-
-
+  
 
 
   const columns = [
@@ -378,48 +408,105 @@ const handleSubmit = async (values) => {
             </div>
 
             {/* Thống kê */}
-            <Row gutter={16} className="mb-6">
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title="Có mặt"
-                    value={statistics.present}
-                    valueStyle={{ color: "#3f8600" }}
-                    prefix={<CheckCircleOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title="Đi muộn"
-                    value={statistics.late}
-                    valueStyle={{ color: "#faad14" }}
-                    prefix={<ClockCircleOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title="Vắng mặt"
-                    value={employees.length - statistics.present - statistics.late}
-                    valueStyle={{ color: "#cf1322" }}
-                    prefix={<CloseCircleOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title="Nghỉ phép"
-                    value={statistics.onLeave}
-                    valueStyle={{ color: "#1890ff" }}
-                    prefix={<CalendarOutlined />}
-                  />
-                </Card>
-              </Col>
-            </Row>
+        <Row gutter={16} className="mb-6">
+          <Col span={6}>
+            <Card>
+              <Popover
+                content={
+                  <ul className="popover-content" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {employeeOnTime.slice(0, 5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                    {!showMoreOnTime && employeeOnTime.length > 5 && (
+                      <li>
+                        <Button type="link" onClick={handleShowMoreOnTime}>Xem thêm</Button>
+                      </li>
+                    )}
+                    {showMoreOnTime && employeeOnTime.slice(5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                  </ul>
+                }
+                title="Danh sách đi làm đúng giờ"
+              >
+                <Statistic
+                  title="Đúng giờ"
+                  value={statistics.present}
+                  valueStyle={{ color: "#3f8600" }}
+                  prefix={<CheckCircleOutlined />}
+                />
+              </Popover>
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Popover
+                content={
+                  <ul className="popover-content" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {employeeLates.slice(0, 5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                    {!showMoreLates && employeeLates.length > 5 && (
+                      <li>
+                        <Button type="link" onClick={handleShowMoreLates}>Xem thêm</Button>
+                      </li>
+                    )}
+                    {showMoreLates && employeeLates.slice(5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                  </ul>
+                }
+                title="Danh sách đi muộn"
+              >
+                <Statistic
+                  title="Đi muộn"
+                  value={statistics.late}
+                  valueStyle={{ color: "#faad14" }}
+                  prefix={<ClockCircleOutlined />}
+                />
+              </Popover>
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Popover
+                content={
+                  <ul className="popover-content" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {employeeAttendances.slice(0, 5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                    {!showMoreAbsent && employeeAttendances.length > 5 && (
+                      <li>
+                        <Button type="link" onClick={handleShowMoreAbsent}>Xem thêm</Button>
+                      </li>
+                    )}
+                    {showMoreAbsent && employeeAttendances.slice(5).map((employee) => (
+                      <li key={employee.employeeId}>{employee.name}</li>
+                    ))}
+                  </ul>
+                }
+                title="Danh sách chưa check-in"
+              >
+                <Statistic
+                  title="Vắng mặt"
+                  value={employees.length - statistics.present - statistics.late}
+                  valueStyle={{ color: "#cf1322" }}
+                  prefix={<CloseCircleOutlined />}
+                />
+              </Popover>
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic
+                title="Nghỉ phép"
+                value={statistics.onLeave}
+                valueStyle={{ color: "#1890ff" }}
+                prefix={<CalendarOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
 
             {/* Bộ lọc */}
             <div className="mb-6">
