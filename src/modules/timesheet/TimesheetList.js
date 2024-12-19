@@ -345,14 +345,14 @@ const handleSubmit = async (values) => {
                     type="primary"
                     onClick={handleAdd}
                     icon={<PlusOutlined />}
-                    size="large"
+                    size="medium"
                     className="min-w-[160px] ml-20"
                   >
-                    Nhâp mã Nhân Viên
+                    Nhâp mã nhân viên
                 </Button>
                 <Modal
                   visible={modalVisible}
-                  title="Nhâp mã Nhân Viên"
+                  title="Nhâp mã nhân viên"
                   onCancel={() => setModalVisible(false)}
                   footer={[
                     <Button key="cancel" onClick={() => setModalVisible(false)}>

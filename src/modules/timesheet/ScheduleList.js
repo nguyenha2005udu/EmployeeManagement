@@ -81,7 +81,7 @@ const ScheduleList = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">Lịch Làm Việc</h2>
+          <h2 className="text-2xl font-bold mb-2">Lịch làm việc</h2>
 
           <p className="text-gray-500">Quản lý lịch làm việc của nhân viên</p>
         </div>

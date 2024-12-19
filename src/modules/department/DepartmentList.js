@@ -50,6 +50,7 @@ const getStatusColor = (status) => {
 
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([])
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");

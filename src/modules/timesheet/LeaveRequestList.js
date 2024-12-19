@@ -209,7 +209,7 @@ const LeaveRequestList = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">Đơn Xin Nghỉ Phép</h2>
+          <h2 className="text-2xl font-bold mb-2">Đơn xin nghỉ phép</h2>
 
           <p className="text-gray-500">
             Quản lý đơn xin nghỉ phép của nhân viên
@@ -282,7 +282,7 @@ const LeaveRequestList = () => {
       {/* Modal tạo đơn nghỉ phép */}
 
       <Modal
-        title="Tạo Đơn Xin Nghỉ Phép"
+        title="Tạo đơn xin nghỉ phép"
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
